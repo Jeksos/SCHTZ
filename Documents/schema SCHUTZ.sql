@@ -37,7 +37,6 @@ create table INVENTAIRE (
      ALLEE_ID char(1) not null,
      ID numeric(1) not null,
      constraint ID_INVENTAIRE primary key (REF),
-     constraint SID_INVENTAIRE unique (Date),
      constraint FKALLEE unique (ALLEE_ID, ID),
      foreign key (ALLEE_ID, ID) references EMPLACEMENTS);
 
