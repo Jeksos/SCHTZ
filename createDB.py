@@ -2,14 +2,12 @@ import sqlite3
 
 connection = sqlite3.connect('schutz.db')
 
-with open('Documents/schema SCHUTZ.sql') as f:
-    connection.executescript(f.read())
-
-# cur = connection.cursor()
-# requete = "INSERT INTO clients (nom, prenom, adresse) VALUES (?, ?, ?)"
-# cur.execute(requete, ('DUPONT', 'Emilie', '123, Rue des Lilas, 75001 Paris'))
-# cur.execute(requete, ('DUPONT', 'Sonia', '123, Rue des Lilas, 75001 Paris'))
-# cur.execute(requete, ('DUPONT', 'Emilie', '123, Rue des Lilas, 75001 Paris'))
-
+with open('Documents/schema SCHUTZ.sql') as fcreate:
+    connection.executescript(fcreate.read())
 connection.commit()
+
+with open('Documents/init_db_insert.sql') as finsert:
+    connection.executescript(finsert.read())
+connection.commit()
+
 connection.close()
