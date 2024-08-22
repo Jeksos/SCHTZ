@@ -2,7 +2,7 @@ import sqlite3
 
 connection = sqlite3.connect('schutz.db')
 
-with open('schema SCHUTZ.sql') as f:
+with open('Documents/schema SCHUTZ.sql') as f:
     connection.executescript(f.read())
 
 # cur = connection.cursor()
