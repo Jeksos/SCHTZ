@@ -51,7 +51,7 @@ def RangerComposant():
     ref = request.form['reference']
     date = request.form['date']
 
-    conn = sqlite3.connect('jeksos_schutz.db')
+    conn = sqlite3.connect('schutz.db')
     cursor = conn.cursor()
     cursor.execute('INSERT INTO inventaire (REF, Date, ALLEE_ID, ID) VALUES (?, ?, ?, ?)', (ref, date, allee_id, id))
     conn.commit()
@@ -70,7 +70,7 @@ def ViderEmplacement():
     allee_id = request.form['allee']
     id = request.form['emplacement']
 
-    conn = sqlite3.connect('jeksos_schutz.db')
+    conn = sqlite3.connect('schutz.db')
     cursor = conn.cursor()
     cursor.execute('DELETE FROM inventaire WHERE ALLEE_ID = ? AND ID = ?', (allee_id, id))
     conn.commit()
@@ -83,7 +83,7 @@ def ViderEmplacement():
 def ReadBDD():
     if request.method == 'POST':
         ref = request.form['reference']
-        conn = sqlite3.connect('jeksos_schutz.db')
+        conn = sqlite3.connect('schutz.db')
         cursor = conn.cursor()
         cursor.execute('SELECT REF, Date, ALLEE_ID, ID FROM inventaire WHERE REF = ?', (ref))
         data = cursor.fetchall()
