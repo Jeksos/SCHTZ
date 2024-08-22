@@ -19,41 +19,41 @@
 -- Tables Section
 -- _____________ 
 
+drop table if exists INVENTAIRE;
+drop table if exists EMPLACEMENTS;
+
+
+-- Tables Section
+-- _____________ 
+
 create table EMPLACEMENTS (
      ALLEE_ID char(1) not null,
-     ID int not null,
-     constraint ID_EMPLACEMENTS_ID primary key (ALLEE_ID, ID));
+     ID numeric(1) not null,
+     constraint ID_EMPLACEMENTS primary key (ALLEE_ID, ID));
 
 create table INVENTAIRE (
      REF varchar(50) not null,
      Date date not null,
      ALLEE_ID char(1) not null,
-     ID int not null,
-     constraint ID_INVENTAIRE_ID primary key (REF),
-     constraint SID_INVENTAIRE_ID unique (Date),
-     constraint FKALLEE_ID unique (ALLEE_ID, ID));
-
-
--- Constraints Section
--- ___________________ 
-
-alter table INVENTAIRE add constraint FKALLEE_FK
-     foreign key (ALLEE_ID, ID)
-     references EMPLACEMENTS (ALLEE_ID, ID);
+     ID numeric(1) not null,
+     constraint ID_INVENTAIRE primary key (REF),
+     constraint SID_INVENTAIRE unique (Date),
+     constraint FKALLEE unique (ALLEE_ID, ID),
+     foreign key (ALLEE_ID, ID) references EMPLACEMENTS);
 
 
 -- Index Section
 -- _____________ 
 
-create unique index ID_EMPLACEMENTS_IND
+create unique index ID_EMPLACEMENTS
      on EMPLACEMENTS (ALLEE_ID, ID);
 
-create unique index ID_INVENTAIRE_IND
+create unique index ID_INVENTAIRE
      on INVENTAIRE (REF);
 
-create unique index SID_INVENTAIRE_IND
+create unique index SID_INVENTAIRE
      on INVENTAIRE (Date);
 
-create unique index FKALLEE_IND
+create unique index FKALLEE
      on INVENTAIRE (ALLEE_ID, ID);
 
