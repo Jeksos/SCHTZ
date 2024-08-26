@@ -17,7 +17,7 @@ def hello_world():
     return render_template('hello.html')
 
 
-@app.route('/authentification', methods=['GET', 'POST'])
+@app.route('/authentification_user', methods=['GET', 'POST'])
 def authentification():
     if request.method == 'POST':
         # Vérifier les identifiants
