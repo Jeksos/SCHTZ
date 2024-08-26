@@ -1,49 +1,30 @@
-from flask import Flask, request, jsonify, render_template
-
-app = Flask(__name__)
-
-# Simuler la base de données des emplacements occupés
-occupied_emplacements = {
-    'A1': '2023-08-01',
-    'B2': '2023-07-15',
-}
-
-# Route principale qui renvoie le formulaire
-@app.route('/')
-def index():
-    return render_template('ranger_composant.html')
-
-# Route pour vérifier si l'emplacement est libre
-@app.route('/check_emplacement', methods=['GET'])
-def check_emplacement():
-    allee = request.args.get('allee')
-    emplacement = request.args.get('emplacement')
-    if f'{allee}{emplacement}' in occupied_emplacements:
-        return jsonify({'occupied': True})
-    return jsonify({'occupied': False})
-
-# Route pour ajouter le composant (si l'emplacement est libre)
-@app.route('/ajouter_composant', methods=['POST'])
-def ajouter_composant():
-    allee = request.form.get('allee')
-    emplacement = request.form.get('emplacement')
-    reference = request.form.get('reference')
-    date = request.form.get('date')
-
-    if f'{allee}{emplacement}' in occupied_emplacements:
-        return "Emplacement déjà occupé", 400
-    # Ajouter la logique pour insérer dans la base de données
-    occupied_emplacements[f'{allee}{emplacement}'] = date
-    return "Composant ajouté avec succès"
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 
-
-
-
-
-
-
-
+<!-- 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>RANGER UN COMPOSANT</title>
+</head>
+<body>
+    <h1>RANGER UN COMPOSANT</h1>
+    <form action="/ajouter_composant" method="POST">
+        <label for="allee">Allée :</label>
+        <input type="text" id="allee" name="allee" required><br><br>
+        
+        <label for="emplacement">Emplacement :</label>
+        <input type="text" id="emplacement" name="emplacement" required><br><br>
+        
+        <label for="reference">Référence :</label>
+        <input type="text" id="reference" name="reference" required><br><br>
+        
+        <label for="date">Date :</label>
+        <input type="text" id="date" name="date" required><br><br>
+        
+        <button type="submit">VALIDER</button>
+    </form>
+</body>
+</html>
+-->
