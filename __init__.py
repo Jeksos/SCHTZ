@@ -83,10 +83,12 @@ def ReadBDD():
         cursor = conn.cursor()
         cursor.execute('SELECT REF, Date, ALLEE_ID, ID FROM inventaire WHERE REF = ?', (ref,))
         data = cursor.fetchall()
-		reference_submitted = True
+	# Simuler une recherche de référence
+        data = rechercher_reference(reference)
+	    
+	reference_submitted = True
         conn.close()
         return render_template('form_recherche.html', data=data,reference_submitted=reference_submitted)
-        return render_template('form_recherche.html')
-
+        
 if __name__ == "__main__":
     app.run(debug=True)
