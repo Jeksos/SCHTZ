@@ -14,12 +14,14 @@
     </form>
 
     {% if data %}
-    <h2>Résultats de la Recherche</h2>
-    <ul>
-        {% for item in data %}
-        <li>Allee: {{ item[2] }}, Emplacement: {{ item[3] }}, Référence: {{ item[0] }}, Date: {{ item[1] }}</li>
-        {% endfor %}
-    </ul>
+        <h2>Résultats de la Recherche</h2>
+        <ul>
+            {% for item in data %}
+            <li>Allee: {{ item[2] }}, Emplacement: {{ item[3] }}, Référence: {{ item[0] }}, Date: {{ item[1] }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Aucun résultat trouvé pour cette référence.</p>
     {% endif %}
 </body>
 </html>
