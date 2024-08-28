@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formLinks = document.getElementById('formLinks');
     const formContainer = document.getElementById('formContainer');
     const userInfo = document.getElementById('userInfo');
+    const rangerForm = document.getElementById('rangerForm');
 
     // Simulation de l'authentification
     const user = {
@@ -158,5 +159,52 @@ app.get('/view_forms', checkRole(['technicien']), (req, res) => {
 app.listen(port, () => {
     console.log(`Serveur en fonctionnement sur http://localhost:${port}`);
 });
+
+    // Fonction pour afficher un message
+    const afficherMessage = (message, isSuccess = true) => {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.style.color = isSuccess ? 'green' : 'red';
+    };
+
+    // Fonction pour vérifier la disponibilité de l'emplacement
+    const checkLocationAvailability = async (allee, emplacement) => {
+        try {
+            const response = await fetch('/check_location_availability', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ allee, emplacement })
+            });
+            const result = await response.json();
+            return result.available;
+        } catch (error) {
+            console.error('Erreur lors de la vérification de la disponibilité de l\'emplacement:', error);
+            return false;
+        }
+    };
+
+    if (rangerForm) {
+        rangerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const allee = document.getElementById('allee').value;
+            const emplacement = document.getElementById('emplacement').value;
+            const reference = document.getElementById('reference').value;
+            const date = document.getElementById('date').value;
+
+            if (allee && emplacement && reference && date) {
+                const isAvailable = await checkLocationAvailability(allee, emplacement);
+                if (isAvailable) {
+                    afficherMessage("Composant rangé avec succès !");
+                } else {
+                    afficherMessage("L'emplacement est déjà occupé. Veuillez en choisir un autre.", false);
+                }
+            } else {
+                afficherMessage("Veuillez remplir tous les champs", false);
+            }
+        });
+    }
+});
+   
 
            
