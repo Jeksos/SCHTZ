@@ -1,0 +1,30 @@
+<form id="rangerForm">
+    <label for="allee">Allée</label>
+    <select id="allee" name="allee" required>
+        <option value="">Sélectionnez une allée</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+    </select>
+
+    <label for="emplacement">Emplacement</label>
+    <select id="emplacement" name="emplacement" required>
+        <option value="">Sélectionnez un emplacement</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+        <option value="300">300</option>
+        <option value="400">400</option>
+        <option value="500">500</option>
+    </select>
+
+    <label for="reference">Référence</label>
+    <input type="text" id="reference" name="reference" required>
+
+    <label for="date">Date</label>
+    <input type="date" id="date" name="date" required>
+
+    <button type="submit">Ranger</button>
+    <div id="message"></div>
+</form>
