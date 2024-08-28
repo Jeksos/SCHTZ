@@ -127,7 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="message"></div>
                 </form>
 
-                //Gestion de l'authentification
+  // Gestion de l'authentification
+  
 const express = require('express');
 const app = express();
 const port = 3000;
