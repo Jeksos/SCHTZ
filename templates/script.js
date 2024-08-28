@@ -126,4 +126,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="submit">Vérifier</button>
                     <div id="message"></div>
                 </form>
+
+                //Gestion de l'authentification
+const express = require('express');
+const app = express();
+const port = 3000;
+
+// Middleware pour vérifier l'authentification et le rôle
+const checkRole = (roles) => (req, res, next) => {
+    const user = req.user; // Supposons que req.user est défini par un middleware d'authentification
+    if (roles.includes(user.role)) {
+        next();
+    } else {
+        res.status(403).send('Accès refusé');
+    }
+};
+
+app.use(express.json());
+
+// Route pour les chefs de projet
+app.get('/manage_forms', checkRole(['chef_de_projet']), (req, res) => {
+    res.send('Page avec les liens vers les formulaires');
+});
+
+// Route pour les techniciens
+app.get('/view_forms', checkRole(['technicien']), (req, res) => {
+    res.send('Page avec les liens vers les formulaires pour les techniciens');
+});
+
+app.listen(port, () => {
+    console.log(`Serveur en fonctionnement sur http://localhost:${port}`);
+});
+
            
