@@ -1,23 +1,87 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plateforme SCHUTZ</title>
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
+    <title>Plateforme SCHUTZ - Authentification</title>
+    <style>
+        /* Style pour le corps */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Container du formulaire */
+        .form-container {
+            background-color: #007BFF; /* Bleu pour l'arrière-plan */
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        /* Style des titres */
+        h2 {
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        /* Style des champs du formulaire */
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        /* Style du bouton de soumission */
+        input[type="submit"] {
+            background-color: white;
+            color: #007BFF;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Effet de survol pour le bouton */
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        /* Style des messages d'erreur */
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
+
 <body>
-    <h2>Authentification</h2>
-    {% if error %}
-        <p style="color: red;">Identifiant ou mot de passe incorrect.</p>
-    {% endif %}
-    <form action="{{ url_for('authentification') }}" method="post">
-        <label for="username">Nom d'utilisateur:</label><br>
-        <input type="text" id="username" name="username"><br>
-        <label for="password">Mot de passe:</label><br>
-        <input type="password" id="password" name="password"><br><br>
-        <input type="submit" value="Se connecter">
-    </form>
+    <div class="form-container">
+        <h2>Authentification</h2>
+        
+        <form action="{{ url_for('authentification') }}" method="POST">
+            <input type="text" id="username" name="username" placeholder="Nom d'utilisateur" required>
+            <input type="password" id="password" name="password" placeholder="Mot de passe" required>
+            <input type="submit" value="Se connecter">
+        </form>
+    </div>
 </body>
+
 </html>
+
