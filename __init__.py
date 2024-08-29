@@ -89,3 +89,27 @@ def ReadBDD():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+@app.route('/verifier_disponibilite', methods=['POST'])
+def verifier_disponibilite():
+    if request.method == 'POST':
+        ref = request.form.get('reference')
+
+        # Connexion à la base de données
+        conn = sqlite3.connect('schutz.db')
+        cursor = conn.cursor()
+
+        # Requête pour vérifier si la référence existe dans la base de données
+        cursor.execute('SELECT COUNT(*) FROM inventaire WHERE REF = ?', (ref,))
+        result = cursor.fetchone()
+
+        conn.close()
+
+        # Si le nombre de lignes avec cette référence est supérieur à 0, elle est disponible
+        if result[0] > 0:
+            return jsonify({'disponible': True, 'message': 'La référence est disponible.'})
+        else:
+            return jsonify({'disponible': False, 'message': 'La référence est indisponible.'})
+
