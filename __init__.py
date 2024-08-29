@@ -38,7 +38,7 @@ def authentification():
 @app.route('/formulaire_ranger')
 def FormulaireRanger():
     # Afficher la page HTML
-    return render_template('Ranger_un_Composant.html')
+    return render_template('form_ranger.html')
 
 @app.route('/ajouter_composant', methods=['POST'])
 def RangerComposant():
