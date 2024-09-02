@@ -10,48 +10,51 @@
 <body>
     <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
     <div class="container">
-    <h1>Ranger un Composant</h1>
-<form action="/ajouter_composant" method="POST">
-    <label for="allee">Allée</label>
-    <select id="allee" name="allee" required>
-        <option value="">Sélectionnez une allée</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="D">D</option>
-        <option value="E">E</option>
-        <option value="F">F</option>
-        <option value="G">G</option>
-        <option value="H">H</option>
-        <option value="I">I</option>
-    </select>
+        <h1>Ranger un Composant</h1>
+        <form action="/ajouter_composant" method="POST">
+            <label for="allee">Allée</label>
+            <select id="allee" name="allee" required>
+                <option value="">Sélectionnez une allée</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+                <option value="F">F</option>
+                <option value="G">G</option>
+                <option value="H">H</option>
+                <option value="I">I</option>
+            </select>
 
-    <label for="emplacement">Emplacement</label>
-    <select id="emplacement" name="emplacement" required>
-        <option value="">Sélectionnez un emplacement</option>
-        <option value="100">100</option>
-        <option value="200">200</option>
-        <option value="300">300</option>
-        <option value="400">400</option>
-        <option value="500">500</option>
-    </select>
+            <label for="emplacement">Emplacement</label>
+            <select id="emplacement" name="emplacement" required>
+                <option value="">Sélectionnez un emplacement</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="400">400</option>
+                <option value="500">500</option>
+				<option value="600">600</option>
+				<option value="700">700</option>
+				<option value="800">800</option>
+				<option value="900">900</option>
+            </select>
 
-    <label for="reference">Référence</label>
-    <input type="text" id="reference" name="reference" required>
+            <label for="reference">Référence</label>
+            <input type="text" id="reference" name="reference" required>
 
-    <label for="date">Date</label>
-    <input type="date" id="date" name="date" required>
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
 
-    <button type="submit">Ranger</button>
-    <div id="message"></div>
-  </form>
+            <button type="submit">Ranger</button>
+        </form>
 
-  <!-- Affichage des messages d'erreur ou de succès -->
-  <div id="message">
+        <!-- Affichage des messages d'erreur ou de succès -->
+        <div id="message">
             {% if error %}
-            <p style="color:red;">{{ error_message }}</p>
+                <p style="color:red;">{{ error_message }}</p>
             {% elif success %}
-            <p style="color:green;">{{ success_message }}</p>
+                <p style="color:green;">{{ success_message }}</p>
             {% endif %}
         </div>
     </div>
