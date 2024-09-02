@@ -108,10 +108,15 @@ def ReadBDD():
         return render_template('form_recherche.html', data=data)
     return render_template('form_recherche.html')
 
+@app.route('/logout')
+def logout():
+    # Déconnexion de l'utilisateur
+    session.pop('authentifie', None)
+    # Rediriger vers le formulaire d'authentification
+    return redirect(url_for('authentification'))
+
 if __name__ == "__main__":
     app.run(debug=True)
-
-
 
 @app.route('/verifier_disponibilite', methods=['POST'])
 def verifier_disponibilite():
