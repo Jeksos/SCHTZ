@@ -74,6 +74,13 @@
 <body>
     <div class="form-container">
         <h2>Authentification</h2>
+
+        <!-- Message d'erreur si les identifiants sont incorrects -->
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
         
         <form action="{{ url_for('authentification') }}" method="POST">
             <input type="text" id="username" name="username" placeholder="Nom d'utilisateur" required>
@@ -84,4 +91,3 @@
 </body>
 
 </html>
-
