@@ -1,5 +1,4 @@
 from flask import Flask, render_template_string, render_template, jsonify, request, redirect, url_for, session
-from flask import render_template
 from flask import json
 from urllib.request import urlopen
 from werkzeug.utils import secure_filename   
@@ -57,6 +56,7 @@ def FormulaireRanger():
 
 @app.route('/ajouter_composant', methods=['POST'])
 def RangerComposant():
+	try:  # Ajouter le bloc try pour gérer les erreurs
     allee_id = request.form['allee']
     id = request.form['emplacement']
     ref = request.form['reference']
@@ -74,8 +74,9 @@ def RangerComposant():
     
     except Exception as e:
         # En cas d'erreur, afficher un message d'erreur
-        error_message = "Une erreur est survenue lors de l'ajout de la référence."
+        error_message = f"Une erreur est survenue lors de l'ajout de la référence : {e}"
         return render_template('form_ranger.html', error=True, error_message=error_message)
+
 @app.route('/formulaire_vider')
 def FormulaireVider():
     # Afficher la page HTML pour vider un emplacement
@@ -114,21 +115,20 @@ if __name__ == "__main__":
 
 @app.route('/verifier_disponibilite', methods=['POST'])
 def verifier_disponibilite():
-    if request.method == 'POST':
-        ref = request.form.get('reference')
+    ref = request.form.get('reference')
 
-        # Connexion à la base de données
-        conn = sqlite3.connect('schutz.db')
-        cursor = conn.cursor()
+    # Connexion à la base de données
+    conn = sqlite3.connect('schutz.db')
+    cursor = conn.cursor()
 
-        # Requête pour vérifier si la référence existe dans la base de données
-        cursor.execute('SELECT COUNT(*) FROM inventaire WHERE REF = ?', (ref,))
-        result = cursor.fetchone()
+    # Requête pour vérifier si la référence existe dans la base de données
+    cursor.execute('SELECT COUNT(*) FROM inventaire WHERE REF = ?', (ref,))
+    result = cursor.fetchone()
 
-        conn.close()
+    conn.close()
 
-        # Si le nombre de lignes avec cette référence est supérieur à 0, elle est disponible
-        if result[0] > 0:
-            return jsonify({'disponible': True, 'message': 'La référence est disponible.'})
-        else:
-            return jsonify({'disponible': False, 'message': 'La référence est indisponible.'})
+    # Si le nombre de lignes avec cette référence est supérieur à 0, elle est disponible
+    if result and result[0] > 0:
+        return jsonify({'disponible': True, 'message': 'La référence est disponible.'})
+    else:
+        return jsonify({'disponible': False, 'message': 'La référence est indisponible.'})
