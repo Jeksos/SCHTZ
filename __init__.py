@@ -12,9 +12,24 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 def est_authentifie():
     return session.get('authentifie')
 
-@app.route('/')
-def hello_world():
-    return render_template('hello.html')
+# Route de lecture restreinte aux utilisateurs authentifiés
+@app.route('/lecture', methods=['GET'])
+def lecture():
+    if not est_authentifie():
+        # Si l'utilisateur n'est pas authentifié, redirection vers le formulaire d'authentification
+        return redirect(url_for('authentification'))
+    
+    # Si l'utilisateur est authentifié, afficher la page de lecture des données
+    conn = sqlite3.connect('schutz.db')
+    cursor = conn.cursor()
+    
+    # Lecture des données dans la base de données
+    cursor.execute('SELECT REF, Date, ALLEE_ID, ID FROM inventaire')
+    data = cursor.fetchall()
+    conn.close()
+
+    return render_template('page_lecture.html', data=data)
+
 
 
 @app.route('/authentification_user', methods=['GET', 'POST'])
