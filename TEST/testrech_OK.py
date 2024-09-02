@@ -50,13 +50,5 @@ try:
 except:
     print("Resultat échouée.")
 
-# Trouver le champ resultat nok
-# try:
-# 	resultat = driver.find_element(By.NAME, "resultat_nok")
-# 	print("Pas de resultat.")
-# except e:
-#     print("Erreur de recherche.")
-
-
 # Fermer le navigateur
 driver.close()
