@@ -33,11 +33,11 @@ def lecture():
 def authentification():
     if request.method == 'POST':
         # Vérifier les identifiants
-        if request.form['username'] == 'chef' and request.form['password'] == 'equipe': # password à cacher par la suite
+        if request.form['username'] == 'chef' and request.form['password'] == 'equipe':  # password à cacher par la suite
             session['authentifie'] = True
             # Rediriger vers la route lecture après une authentification réussie
             return render_template('page_chef.html')
-        elif request.form['username'] == 'techos' and request.form['password'] == 'tech1': # password à cacher par la suite
+        elif request.form['username'] == 'techos' and request.form['password'] == 'tech1':  # password à cacher par la suite
             session['authentifie'] = True
             # Rediriger vers la route lecture après une authentification réussie
             return redirect(url_for('recherche'))
@@ -56,19 +56,19 @@ def FormulaireRanger():
 
 @app.route('/ajouter_composant', methods=['POST'])
 def RangerComposant():
-	try:  # Ajouter le bloc try pour gérer les erreurs
-    allee_id = request.form['allee']
-    id = request.form['emplacement']
-    ref = request.form['reference']
-    date = request.form['date']
+    try:  # Ajouter le bloc try pour gérer les erreurs
+        allee_id = request.form['allee']
+        id = request.form['emplacement']
+        ref = request.form['reference']
+        date = request.form['date']
 
-    conn = sqlite3.connect('schutz.db')
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO inventaire (REF, Date, ALLEE_ID, ID) VALUES (?, ?, ?, ?)', (ref, date, allee_id, id))
-    conn.commit()
-    conn.close()
-    
-    # Message de succès
+        conn = sqlite3.connect('schutz.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO inventaire (REF, Date, ALLEE_ID, ID) VALUES (?, ?, ?, ?)', (ref, date, allee_id, id))
+        conn.commit()
+        conn.close()
+        
+        # Message de succès
         success_message = f"La référence {ref} a été ajoutée avec succès."
         return render_template('form_ranger.html', success=True, success_message=success_message)
     
