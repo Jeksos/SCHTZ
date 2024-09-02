@@ -112,4 +112,3 @@ def verifier_disponibilite():
             return jsonify({'disponible': True, 'message': 'La référence est disponible.'})
         else:
             return jsonify({'disponible': False, 'message': 'La référence est indisponible.'})
-
