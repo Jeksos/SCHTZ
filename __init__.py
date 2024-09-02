@@ -68,9 +68,14 @@ def RangerComposant():
     conn.commit()
     conn.close()
     
-    # Rediriger vers la page d'accueil après l'enregistrement
-    return redirect('/formulaire_ranger')
-
+    # Message de succès
+        success_message = f"La référence {ref} a été ajoutée avec succès."
+        return render_template('form_ranger.html', success=True, success_message=success_message)
+    
+    except Exception as e:
+        # En cas d'erreur, afficher un message d'erreur
+        error_message = "Une erreur est survenue lors de l'ajout de la référence."
+        return render_template('form_ranger.html', error=True, error_message=error_message)
 @app.route('/formulaire_vider')
 def FormulaireVider():
     # Afficher la page HTML pour vider un emplacement
