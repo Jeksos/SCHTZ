@@ -42,9 +42,14 @@
     <div id="message"></div>
   </form>
 
-    </div>
-
+  <!-- Affichage des messages d'erreur ou de succès -->
+  <div id="message">
+            {% if error %}
+            <p style="color:red;">{{ error_message }}</p>
+            {% elif success %}
+            <p style="color:green;">{{ success_message }}</p>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>
-
