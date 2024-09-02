@@ -29,8 +29,6 @@ def lecture():
 
     return render_template('page_lecture.html', data=data)
 
-
-
 @app.route('/authentification_user', methods=['GET', 'POST'])
 def authentification():
     if request.method == 'POST':
@@ -51,6 +49,8 @@ def authentification():
 
 @app.route('/formulaire_ranger')
 def FormulaireRanger():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
     # Afficher la page HTML
     return render_template('form_ranger.html')
 
@@ -79,7 +79,8 @@ def RangerComposant():
 
 @app.route('/formulaire_vider')
 def FormulaireVider():
-    # Afficher la page HTML pour vider un emplacement
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
     return render_template('form_vider.html')
 
 @app.route('/vider_emplacement', methods=['POST'])
