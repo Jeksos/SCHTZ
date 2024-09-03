@@ -50,9 +50,6 @@ create unique index ID_EMPLACEMENTS
 create unique index ID_INVENTAIRE
      on INVENTAIRE (REF);
 
-create unique index SID_INVENTAIRE
-     on INVENTAIRE (Date);
-
 create unique index FKALLEE
      on INVENTAIRE (ALLEE_ID, ID);
 
