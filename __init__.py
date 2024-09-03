@@ -115,7 +115,7 @@ def ViderEmplacement():
     return redirect('/formulaire_vider')
 
 @app.route('/recherche', methods=['GET', 'POST'])
-def ReadBDD():
+def recherche():
     if request.method == 'POST':
         ref = request.form['reference']
         conn = sqlite3.connect('schutz.db')
