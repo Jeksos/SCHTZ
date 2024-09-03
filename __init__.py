@@ -42,12 +42,12 @@ def authentification():
             session['authentifie'] = True
             session['chef'] = True
             # Rediriger vers la route lecture après une authentification réussie
-            return redirect(url_for('/menu_accueil'))
+            return redirect(url_for('MenuAccueil'))
         elif request.form['username'] == 'techos' and request.form['password'] == 'tech1':  # password à cacher par la suite
             session['authentifie'] = True
             session['chef'] = False
             # Rediriger vers la route lecture après une authentification réussie
-            return redirect(url_for('/menu_accueil'))
+            return redirect(url_for('MenuAccueil'))
         else:
             # Afficher un message d'erreur si les identifiants sont incorrects
             return render_template('formulaire_authentification.html', error="Identifiants incorrects")
