@@ -7,6 +7,11 @@ import sqlite3
 app = Flask(__name__)                                                                                                                  
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions  
 
+
+@app.route('/')
+def hello_world():
+    return render_template('hello.html')
+
 # Fonction pour créer une clé "authentifie" dans la session utilisateur
 def est_authentifie():
     return session.get('authentifie')
@@ -43,7 +48,7 @@ def authentification():
             return redirect(url_for('recherche'))
         else:
             # Afficher un message d'erreur si les identifiants sont incorrects
-            return render_template('formulaire_authentification.html', error=True)
+            return render_template('formulaire_authentification.html', error="Identifiants incorrects")
 
     return render_template('formulaire_authentification.html', error=False)
 
@@ -74,7 +79,9 @@ def RangerComposant():
     
     except Exception as e:
         # En cas d'erreur, afficher un message d'erreur
-        error_message = f"Une erreur est survenue lors de l'ajout de la référence : {e}"
+        
+        error_message = f"Impossible d'ajouter cette référence à cet emplacement."
+        error_message += f"\r\nVérifier si l'emplacement est libre ou si la référence n'est pas déjà présente ailleurs."
         return render_template('form_ranger.html', error=True, error_message=error_message)
 
 @app.route('/formulaire_vider')
@@ -114,7 +121,7 @@ def logout():
     # Déconnexion de l'utilisateur
     session.pop('authentifie', None)
     # Rediriger vers le formulaire d'authentification
-    return redirect(url_for('authentification'))
+    return redirect(url_for('/'))
 
 if __name__ == "__main__":
     app.run(debug=True)
