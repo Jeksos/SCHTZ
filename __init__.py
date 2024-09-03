@@ -40,10 +40,12 @@ def authentification():
         # Vérifier les identifiants
         if request.form['username'] == 'chef' and request.form['password'] == 'equipe':  # password à cacher par la suite
             session['authentifie'] = True
+            session['chef'] = True
             # Rediriger vers la route lecture après une authentification réussie
-            return render_template('page_chef.html')
+            return redirect(url_for('menu_accueil'))
         elif request.form['username'] == 'techos' and request.form['password'] == 'tech1':  # password à cacher par la suite
             session['authentifie'] = True
+            session['chef'] = False
             # Rediriger vers la route lecture après une authentification réussie
             return redirect(url_for('recherche'))
         else:
@@ -51,6 +53,14 @@ def authentification():
             return render_template('formulaire_authentification.html', error="Identifiants incorrects")
 
     return render_template('formulaire_authentification.html', error=False)
+
+@app.route('/menu_accueil')
+def AccueilChef():
+    # Afficher la page HTML
+    if session['chef'] = True
+        return render_template('page_chef.html')
+    return render_template('page_techos.html')
+
 
 @app.route('/formulaire_ranger')
 def FormulaireRanger():
