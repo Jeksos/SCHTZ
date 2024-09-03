@@ -1,4 +1,4 @@
-import qlite3
+import sqlite3
 
 connection = sqlite3.connect('schutz.db')
 
