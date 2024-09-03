@@ -9,7 +9,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
 
 @app.route('/')
-def hello_world():
+def acceuil():
     return render_template('hello.html')
 
 # Fonction pour créer une clé "authentifie" dans la session utilisateur
@@ -131,7 +131,7 @@ def logout():
     # Déconnexion de l'utilisateur
     session.pop('authentifie', None)
     # Rediriger vers le formulaire d'authentification
-    return redirect(url_for('/'))
+    return redirect(url_for('acceuil'))
 
 if __name__ == "__main__":
     app.run(debug=True)
