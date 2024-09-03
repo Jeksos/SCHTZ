@@ -57,7 +57,7 @@ def authentification():
 @app.route('/menu_accueil')
 def AccueilChef():
     # Afficher la page HTML
-    if session['chef'] = True
+    if session['chef'] == True
         return render_template('page_chef.html')
     return render_template('page_techos.html')
 
@@ -129,7 +129,7 @@ def ReadBDD():
 @app.route('/logout')
 def logout():
     # Déconnexion de l'utilisateur
-#    session.pop('authentifie', None)
+    session.pop('authentifie', None)
     # Rediriger vers le formulaire d'authentification
     return redirect(url_for('/'))
 
