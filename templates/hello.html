@@ -1,16 +1,66 @@
-
 <!doctype html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8">
     <title>Flask Server</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="script.js"></script>
+
+    <style>
+      /* General page styling */
+      body {
+        background-color: #007BFF; /* Blue background */
+        font-family: Arial, sans-serif;
+        color: white;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      /* Circular title styling */
+      h1 {
+        display: inline-block;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+        font-weight: bold;
+        animation: rotate 30s linear infinite;
+        margin-bottom: 20px;
+      }
+
+      @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Link styling */
+      a {
+        color: #ffeb3b;
+        font-weight: bold;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body>
-    <h1>Bienvenue sur la plateforme SCHUTZ </h1>
+    <h1>Bienvenue sur la plateforme SCHUTZ</h1>
     <p>Bonjour, veuillez vous <a href="https://jeksos.alwaysdata.net/authentification_user">identifier</a> via la page d'authentification.</p>
   </body>
 </html>
-
 
 
 
