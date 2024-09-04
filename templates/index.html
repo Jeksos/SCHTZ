@@ -4,28 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plateforme SCHUTZ</title>
-    <link rel="stylesheet" href="styles.css">
+     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
+    <style>
+        /* Style général */
+        body {
+            background-color: #007BFF; /* Arrière-plan bleu */
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden;
+        }
 
-<style>
+        /* Cercle de bienvenue avec animation multicolore */
         .message-circle {
             position: absolute;
             top: 10px;
             left: 10px;
-            padding: 10px;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
-            background: linear-gradient(45deg, #ff6f61, #ffecb3, #ff5722, #ffeb3b);
+            background: linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet);
             color: white;
-            font-weight: bold;
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 18px;
+            font-weight: bold;
+            animation: rotate 30s linear infinite;
             z-index: 1000;
         }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Conteneur principal */
+        .container {
+            margin-top: 240px; /* Assure que le contenu ne chevauche pas le cercle de bienvenue */
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+            background-color: rgba(255, 255, 255, 0.1); /* Fond semi-transparent pour le contraste */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #formLinks {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #formLinks li {
+            margin: 10px 0;
+        }
+
+        #formLinks a {
+            color: #ffeb3b;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        #formLinks a:hover {
+            text-decoration: underline;
+        }
+
+        #formContainer {
+            margin-top: 20px;
+        }
     </style>
-</head>
-
-
-	
 </head>
 <body>
     <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
@@ -35,7 +95,7 @@
         <div id="userInfo"></div>
         <ul id="formLinks">
             <!-- Liens vers les formulaires seront insérés ici -->
-	    <li><a href="ranger_composant.html">Ranger un Composant</a></li>
+            <li><a href="ranger_composant.html">Ranger un Composant</a></li>
             <li><a href="vider_emplacement.html">Vider un Emplacement</a></li>
             <li><a href="rechercher_reference.html">Rechercher une Référence</a></li>
             <li><a href="verifier_disponibilite.html">Vérifier Disponibilité</a></li>
@@ -47,3 +107,4 @@
     </div>
 </body>
 </html>
+
