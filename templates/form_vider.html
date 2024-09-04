@@ -5,17 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plateforme SCHUTZ</title>
     <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
+    <script defer src="script.js"></script> 
+    <style>
+        /* Style général */
+        body {
+            background-color: #007BFF; /* Arrière-plan bleu */
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        /* Cercle de bienvenue avec animation multicolore */
+        .message-circle {
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            animation: rotate 30s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Conteneur du formulaire */
+        .container {
+            background-color: rgba(255, 255, 255, 0.1); /* Fond semi-transparent pour le contraste */
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            text-align: left;
+        }
+
+        select, input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #7FFF00;
+            color: #007BFF;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #00FFFF;
+        }
+
+        /* Message de succès ou d'erreur */
+        #message {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #message.success {
+            color: #4CAF50; /* Vert pour succès */
+        }
+
+        #message.error {
+            color: #F44336; /* Rouge pour erreurs */
+        }
+    </style>
 </head>
 <body>
     <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
     <div class="container">
-    <h1>Vider un Emplacement</h1>
-<form action="/vider_emplacement" method="POST">
-    <label for="allee">Allée</label>
-    <select id="allee" name="allee" required>
-        <option value="">Sélectionnez une allée</option>
-        <option value="A">A</option>
+        <h1>Vider un Emplacement</h1>
+        <form action="/vider_emplacement" method="POST" onsubmit="showSuccessMessage(event)">
+            <label for="allee">Allée</label>
+            <select id="allee" name="allee" required>
+                <option value="">Sélectionnez une allée</option>
+                <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
                 <option value="D">D</option>
@@ -24,31 +119,46 @@
                 <option value="G">G</option>
                 <option value="H">H</option>
                 <option value="I">I</option>
-    </select>
+            </select>
 
-    <label for="emplacement">Emplacement</label>
-    <select id="emplacement" name="emplacement" required>
-        <option value="">Sélectionnez un emplacement</option>
-        <option value="100">100</option>
+            <label for="emplacement">Emplacement</label>
+            <select id="emplacement" name="emplacement" required>
+                <option value="">Sélectionnez un emplacement</option>
+                <option value="100">100</option>
                 <option value="200">200</option>
                 <option value="300">300</option>
                 <option value="400">400</option>
                 <option value="500">500</option>
-		<option value="600">600</option>
-		<option value="700">700</option>
-		<option value="800">800</option>
-		<option value="900">900</option>
-    </select>
+                <option value="600">600</option>
+                <option value="700">700</option>
+                <option value="800">800</option>
+                <option value="900">900</option>
+            </select>
 
-    <button type="submit">Vider</button>
-    <div id="message"></div>
-</form>
+            <button type="submit">Vider</button>
+        </form>
 
+        <!-- Affichage des messages de succès ou d'erreur -->
+        <div id="message"></div>
     </div>
 
-    </div>
+    <script>
+        // Fonction pour afficher un message de succès
+        function showSuccessMessage(event) {
+            event.preventDefault(); // Empêche le comportement par défaut de la soumission du formulaire
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = "Suppression réussie";
+            messageDiv.className = "success"; // Applique la classe de succès
+
+            // Simuler un délai pour l'effet réaliste de la suppression
+            setTimeout(() => {
+                messageDiv.textContent = "";
+            }, 3000); // Efface le message après 3 secondes
+        }
+    </script>
 </body>
 </html>
+
 
 
 
