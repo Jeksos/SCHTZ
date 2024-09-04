@@ -45,10 +45,10 @@ time.sleep(1)
 
 
 # Trouver le champ resultat nok
-  try:
+try:
  	resultat = driver.find_element(By.NAME, "resultat_nok")
  	print("Pas de resultat.")
-  except:
+except:
      print("Erreur de recherche.")
 
 
