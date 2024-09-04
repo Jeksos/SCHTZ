@@ -6,68 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plateforme SCHUTZ - Authentification</title>
     <style>
-        /* Style pour le corps */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e0e0e0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
         /* Container du formulaire */
-        .form-container {
-            background-color: #007BFF; /* Bleu pour l'arrière-plan */
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-        }
+.form-container {
+    background-color: #007BFF; /* Bleu pour l'arrière-plan */
+    padding: 50px; /* Augmentation du padding pour plus d'espace */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 400px; /* Augmentation de la largeur */
+    height: auto; /* Hauteur automatique, s'ajuste au contenu */
+    text-align: center;
+}
 
-        /* Style des titres */
-        h2 {
-            color: white;
-            margin-bottom: 30px;
-        }
+/* Style des champs du formulaire */
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 15px; /* Augmentation du padding pour plus de confort */
+    margin-bottom: 30px; /* Réduction de la marge pour équilibrer l'espacement */
+    border: none;
+    border-radius: 5px;
+}
 
-        /* Style des champs du formulaire */
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: none;
-            border-radius: 5px;
-        }
+/* Style du bouton de soumission */
+input[type="submit"] {
+    background-color: green;
+    color: #007BFF;
+    border: none;
+    padding: 15px; /* Augmentation du padding pour le bouton */
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
 
-        /* Style du bouton de soumission */
-        input[type="submit"] {
-            background-color: white;
-            color: #007BFF;
-            border: none;
-            padding: 10px;
-            width: 100%;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+/* Effet de survol pour le bouton */
+input[type="submit"]:hover {
+    background-color: #0056b3;
+    color: white;
+}
 
-        /* Effet de survol pour le bouton */
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-            color: white;
-        }
-
-        /* Style des messages d'erreur */
-        .error-message {
-            color: red;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 
@@ -76,11 +53,6 @@
         <h2>Authentification</h2>
 
         <!-- Message d'erreur si les identifiants sont incorrects -->
-        {% if error %}
-        <div class="error-message">
-            {{ error }}
-        </div>
-        {% endif %}
         
         <form action="{{ url_for('authentification') }}" method="POST">
             <input type="text" id="username" name="username" placeholder="Nom d'utilisateur" required>
