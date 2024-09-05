@@ -15,11 +15,11 @@
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             text-align: center;
+            position: relative; /* Nécessaire pour le positionnement absolu des enfants */
         }
 
         /* Cercle de bienvenue avec animation multicolore */
@@ -36,7 +36,10 @@
             font-size: 18px;
             font-weight: bold;
             animation: rotate 30s linear infinite;
-            margin-bottom: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 20px;
         }
 
         @keyframes rotate {
@@ -145,3 +148,4 @@
     </div>
 </body>
 </html>
+
