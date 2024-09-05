@@ -5,6 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page des techniciens</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="script.js"></script>  
+    <style>
+        body {
+            background-color: #007BFF; /* Bleu pour l'arrière-plan */
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        li {
+            margin: 15px 0; /* Espace entre les éléments de la liste */
+        }
+
+        a {
+            color: #ffeb3b; /* Jaune pour les liens */
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Bienvenue à l'équipe !</h1>
@@ -12,7 +51,7 @@
 
     <ul>
         <li><a href="{{ url_for('recherche') }}">Rechercher un composant</a></li>
-        <li><a href="{{ url_for('lecture') }}">Etat de l'inventaire</a></li>
+        <li><a href="{{ url_for('lecture') }}">État de l'inventaire</a></li>
     </ul>
 
     <p><a href="{{ url_for('logout') }}">Déconnexion</a></p>
