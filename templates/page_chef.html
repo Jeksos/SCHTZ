@@ -4,7 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page du Chef</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* Ajout d'un arrière-plan bleu pour toute la page */
+        body {
+            background-color: #007BFF; /* Bleu pour l'arrière-plan */
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: white; /* Texte en blanc pour contraste */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Hauteur pleine page */
+            text-align: center; /* Centrage du texte */
+        }
+
+        /* Stylisation des actions sous forme de liste */
+        ul {
+            list-style-type: none; /* Suppression des puces */
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin: 15px 0; /* Espacement entre les éléments de la liste */
+        }
+
+        /* Style des liens */
+        a {
+            background-color: white; /* Fond blanc pour les boutons */
+            color: #007BFF; /* Texte bleu pour contraste */
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        a:hover {
+            background-color: #00FFFF; /* Changement de couleur au survol */
+            color: white;
+        }
+
+        /* Style pour le lien de déconnexion */
+        p a {
+            background-color: #7FFF00;
+            color: black;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Bienvenue, Chef !</h1>
