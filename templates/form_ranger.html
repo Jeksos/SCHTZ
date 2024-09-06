@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html><!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -6,9 +6,95 @@
     <title>Plateforme SCHUTZ</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
+    <style>
+        /* Styling for the entire page */
+        body {
+            background-color: #007BFF; /* Blue background */
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        /* Circular welcome message */
+        .message-circle {
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(270deg, red, yellow, blue); /* Circle with 3 colors */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Container for form */
+        .container {
+            background-color: rgba(255, 255, 255, 0.1); /* Slight transparency */
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+        }
+
+        /* Form styling */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        select, input {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #28a745; /* Green button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        /* Message box styling */
+        #message {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
+    
     <div class="container">
         <h1>Ranger un Composant</h1>
         <form action="/ajouter_composant" method="POST">
@@ -34,10 +120,10 @@
                 <option value="300">300</option>
                 <option value="400">400</option>
                 <option value="500">500</option>
-		<option value="600">600</option>
-		<option value="700">700</option>
-		<option value="800">800</option>
-		<option value="900">900</option>
+                <option value="600">600</option>
+                <option value="700">700</option>
+                <option value="800">800</option>
+                <option value="900">900</option>
             </select>
 
             <label for="reference">Référence</label>
@@ -46,10 +132,10 @@
             <label for="date">Date</label>
             <input type="date" id="date" name="date" required>
 
-            <button type="submit">Ranger</button>
+            <button type="submit">Valider</button>
         </form>
 
-        <!-- Affichage des messages d'erreur ou de succès -->
+        <!-- Display error or success messages -->
         <div id="message">
             {% if error %}
                 <p style="color:red;">{{ error_message }}</p>
@@ -60,6 +146,12 @@
     </div>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
