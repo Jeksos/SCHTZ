@@ -6,34 +6,153 @@
     <title>Plateforme SCHUTZ</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
+    <style>
+        /* Style général */
+        body {
+            background-color: #007BFF; /* Arrière-plan bleu */
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        /* Cercle de bienvenue avec 3 couleurs */
+        .message-circle {
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(270deg, red, yellow, blue); /* Simplified to three colors */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            animation: rotate 30s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Conteneur du formulaire */
+        .container {
+            background-color: rgba(255, 255, 255, 0.1); /* Fond semi-transparent pour le contraste */
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: left;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #7FFF00;
+            color: #007BFF;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #00FFFF;
+        }
+
+        /* Liste des résultats */
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            background-color: #333;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* Messages de recherche */
+        #message {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #message.success {
+            color: #4CAF50; /* Vert pour succès */
+        }
+
+        #message.error {
+            color: #F44336; /* Rouge pour erreurs */
+        }
+
+        /* Style du lien de retour */
+        a {
+            color: #ffeb3b;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
     <div class="container">
-    <h1>Rechercher une Référence</h1>
-<form action="/recherche" method="POST">
-    <label for="reference">Référence</label>
-    <input type="text" id="reference" name="reference" required>
+        <h1>Rechercher une Référence</h1>
+        <form action="/recherche" method="POST">
+            <label for="reference">Référence</label>
+            <input type="text" id="reference" name="reference" required>
 
-    <button type="submit" name="recherche">Rechercher</button>
-    <div id="message"></div>
-</form>
+            <button type="submit" name="recherche">Rechercher</button>
+            <div id="message"></div>
+        </form>
 
-   {% if data %}
-        <h2>Résultats de la Recherche</h2>
-        <ul>
-            {% for item in data %}
-            <li name="resultat_ok">Allee: {{ item[2] }}, Emplacement: {{ item[3] }}, Référence: {{ item[0] }}, Date: {{ item[1] }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p style="color: red;" name="resultat_nok">Aucun résultat trouvé pour cette référence.</p>
-    {% endif %}        
+        <!--{% if data %}
+            <h2>Résultats de la Recherche</h2>
+            <ul>
+                {% for item in data %}
+                <li>Allée: {{ item[2] }}, Emplacement: {{ item[3] }}, Référence: {{ item[0] }}, Date: {{ item[1] }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="color: red;" name="resultat_nok">Aucun résultat trouvé pour cette référence.</p>
+        {% endif %}-->
     </div>
-    </div>   
 
     <a href="javascript:history.back()">Retour</a>
-    
-
 </body>
 </html>
