@@ -25,11 +25,11 @@ time.sleep(1)
 
 # Champ Allée
 allee = driver.find_element(By.NAME, "Allée")
-allee.send_keys("A")  # Sélectionner l'allée A
+allee.select_by_value("A")   # Sélectionner l'allée A
 
 # Champ Emplacement
 emplacement = driver.find_element(By.NAME, "emplacement")
-emplacement.send_keys("100")  # Sélectionner l'emplacement 100
+emplacement.select_by_value("100")  # Sélectionner l'emplacement 100
 
 # Champ Référence
 reference = driver.find_element(By.NAME, "reference")
