@@ -124,8 +124,8 @@ def recherche():
         data = cursor.fetchall()
         conn.close()
         return render_template('form_recherche.html', data=data)
-   # return render_template('form_recherche.html')
-    return redirect(url_for('acceuil'))
+    return render_template('form_recherche.html')
+    
 
 @app.route('/logout')
 def logout():
