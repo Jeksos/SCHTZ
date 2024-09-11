@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
     <style>
-        /* Style général */
+        /* Styles généraux */
         body {
-            background-color: #007BFF; /* Arrière-plan bleu */
+            background-color: #007BFF;
             font-family: Arial, sans-serif;
             color: white;
             margin: 0;
@@ -22,13 +22,13 @@
             text-align: center;
         }
 
-        /* Cercle de bienvenue avec 3 couleurs */
+        /* Cercle de bienvenue */
         .message-circle {
             display: inline-block;
             width: 200px;
             height: 200px;
             border-radius: 50%;
-            background: linear-gradient(270deg, red, yellow, blue); /* Simplified to three colors */
+            background: linear-gradient(270deg, red, yellow, blue);
             color: white;
             display: flex;
             justify-content: center;
@@ -46,7 +46,7 @@
 
         /* Conteneur du formulaire */
         .container {
-            background-color: rgba(255, 255, 255, 0.1); /* Fond semi-transparent pour le contraste */
+            background-color: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 10px;
             width: 300px;
@@ -55,11 +55,6 @@
 
         h1 {
             margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin: 10px 0 5px;
         }
 
         input[type="text"] {
@@ -86,21 +81,7 @@
             background-color: #00FFFF;
         }
 
-        /* Liste des résultats */
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        li {
-            background-color: #333;
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        /* Messages de recherche */
+        /* Message d'information */
         #message {
             margin-top: 20px;
             font-size: 16px;
@@ -108,14 +89,13 @@
         }
 
         #message.success {
-            color: #4CAF50; /* Vert pour succès */
+            color: #4CAF50;
         }
 
         #message.error {
-            color: #F44336; /* Rouge pour erreurs */
+            color: #F44336;
         }
 
-        /* Style du lien de retour */
         a {
             color: #ffeb3b;
             font-weight: bold;
@@ -133,25 +113,36 @@
     <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
     <div class="container">
         <h1>Rechercher une Référence</h1>
-        <form action="/recherche" method="POST"> 
+        <form id="searchForm">
             <input type="text" id="reference" name="reference" required>
-
             <button type="submit" name="recherche">Valider</button>
             <div id="message"></div>
         </form>
-
-       <!-- {% if data %}
-            <h2>Résultats de la Recherche</h2>
-            <ul>
-                {% for item in data %}
-                <li>Allée: {{ item[2] }}, Emplacement: {{ item[3] }}, Référence: {{ item[0] }}, Date: {{ item[1] }}</li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p style="color: red;" name="resultat_nok">Aucun résultat trouvé pour cette référence.</p>
-        {% endif %} -->
     </div>
 
     <a href="javascript:history.back()">Retour</a>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Récupère la valeur du champ de référence
+            const reference = document.getElementById('reference').value;
+
+            // Simule une requête vers un serveur (cela pourrait être une requête fetch ou XMLHttpRequest)
+            // Ici, on simule la réponse
+            const isValid = (reference === "12345"); // Juste un exemple de validation
+
+            const messageDiv = document.getElementById('message');
+
+            if (isValid) {
+                messageDiv.textContent = "La référence a été trouvée avec succès.";
+                messageDiv.className = 'success';
+            } else {
+                messageDiv.textContent = "Aucun résultat trouvé pour cette référence.";
+                messageDiv.className = 'error';
+            }
+        });
+    </script>
 </body>
 </html>
