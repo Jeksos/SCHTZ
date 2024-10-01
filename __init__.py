@@ -118,12 +118,23 @@ def ViderEmplacement():
 def recherche():
     if request.method == 'POST':
         ref = request.form['reference']
+        
         conn = sqlite3.connect('schutz.db')
         cursor = conn.cursor()
+        
+        # Recherche dans la base de données
         cursor.execute('SELECT REF, Date, ALLEE_ID, ID FROM inventaire WHERE REF = ?', (ref,))
         data = cursor.fetchall()
+        
         conn.close()
+        
+        # Si aucun résultat, envoyer un message d'erreur
+        if not data:
+            return render_template('form_recherche.html', data=None, message="Aucun résultat trouvé pour cette référence.")
+        
+        # Si des résultats sont trouvés, les afficher
         return render_template('form_recherche.html', data=data)
+    
     return render_template('form_recherche.html')
     
 
