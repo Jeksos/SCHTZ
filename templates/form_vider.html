@@ -6,55 +6,120 @@
     <title>Plateforme SCHUTZ</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
+
+    <style>
+        /* General page styling */
+        body {
+            background-color: #007BFF; /* Blue background */
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        /* Container styling */
+        .container {
+            background-color: rgba(255, 255, 255, 0.1); /* Transparent white for contrast */
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #ffeb3b;
+            margin-bottom: 20px;
+        }
+
+        /* Form elements styling to match RANGER page */
+        label, select, input {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+
+        label {
+            text-align: left;
+            color: white;
+        }
+
+        /* Button VIDER styling */
+        button {
+            background-color: #28a745; /* Green button */
+            color: white;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        /* Return button styling */
+        .return-link {
+            margin-top: 20px;
+            color: #ffeb3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .return-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
     <div class="container">
-    <h1>Vider un Emplacement</h1>
-<form action="/vider_emplacement" method="POST">
-    <label for="allee">Allée</label>
-    <select id="allee" name="allee" required>
-        <option value="">Sélectionnez une allée</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="D">D</option>
-        <option value="E">E</option>
-        <option value="F">F</option>
-        <option value="G">G</option>
-        <option value="H">H</option>
-        <option value="I">I</option>
-    </select>
+        <h1>Vider un Emplacement</h1>
+        <form action="/vider_emplacement" method="POST">
+            <label for="allee">Allée</label>
+            <select id="allee" name="allee" required>
+                <option value="">Sélectionnez une allée</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+                <option value="F">F</option>
+                <option value="G">G</option>
+                <option value="H">H</option>
+                <option value="I">I</option>
+            </select>
 
-    <label for="emplacement">Emplacement</label>
-    <select id="emplacement" name="emplacement" required>
-        <option value="">Sélectionnez un emplacement</option>
-        <option value="100">100</option>
-        <option value="200">200</option>
-        <option value="300">300</option>
-        <option value="400">400</option>
-        <option value="500">500</option>
-        <option value="600">600</option>
-        <option value="700">700</option>
-        <option value="800">800</option>
-        <option value="900">900</option>
-    </select>
+            <label for="emplacement">Emplacement</label>
+            <select id="emplacement" name="emplacement" required>
+                <option value="">Sélectionnez un emplacement</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="400">400</option>
+                <option value="500">500</option>
+                <option value="600">600</option>
+                <option value="700">700</option>
+                <option value="800">800</option>
+                <option value="900">900</option>
+            </select>
 
-    <button type="submit">Vider</button>
+            <button type="submit">Vider</button>
 
-    <div id="message">{{ message }}</div>
-</form>
+            <div id="message">{{ message }}</div>
+        </form>
 
-        
-    <!-- Return link -->
-    <a href="/menu_accueil" class="return-link">Retour à l'accueil</a>
-    
-    </div>
-
+        <!-- Return link -->
+        <a href="/menu_accueil" class="return-link">Retour à l'accueil</a>
     </div>
 </body>
 </html>
-
-
-
-
