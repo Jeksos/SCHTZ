@@ -112,8 +112,7 @@ def ViderEmplacement():
     conn.commit()
     conn.close()
     
-    # Rediriger vers la page d'accueil après l'opération
-    return redirect('/formulaire_vider')
+    return render_template('form_vider.html', message = 'L'emplacement %s-%s est libéré' % (allee_id, id))
 
 @app.route('/recherche', methods=['GET', 'POST'])
 def recherche():
