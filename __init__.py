@@ -112,7 +112,7 @@ def ViderEmplacement():
     conn.commit()
     conn.close()
     
-    return render_template('form_vider.html', message = 'L'emplacement %s-%s est libéré' % (allee_id, id))
+    return render_template('form_vider.html', message = "L'emplacement %s-%s est libéré" % (allee_id, id))
 
 @app.route('/recherche', methods=['GET', 'POST'])
 def recherche():
