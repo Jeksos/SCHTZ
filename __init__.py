@@ -88,6 +88,7 @@ def RangerComposant():
         return render_template('form_ranger.html', success=True, success_message=success_message)
     
     except Exception as e:
+        conn.close()
         # En cas d'erreur, afficher un message d'erreur
         
         error_message = f"Impossible d'ajouter cette référence à cet emplacement."
