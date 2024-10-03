@@ -61,6 +61,11 @@
             margin-bottom: 20px;
         }
 
+        /* Result message styling */
+        p {
+            color: red;
+        }
+
         label, select, input {
             display: block;
             width: 100%;
@@ -148,7 +153,9 @@
             <input type="date" id="date" name="date" required>
 
             <button type="submit">Valider</button>
-            <div id="message"></div>
+            <div id="message">{{ success_message }}</div>
+            <p name="resultat_nok">{{ error_message }}</p>
+
         </form>
 
         <!-- Return link -->
