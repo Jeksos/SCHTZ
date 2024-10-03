@@ -17,8 +17,8 @@ def est_authentifie():
     return session.get('authentifie')
 
 # Route de lecture restreinte aux utilisateurs authentifiés
-@app.route('/lecture', methods=['GET'])
-def lecture():
+@app.route('/inventaire', methods=['GET'])
+def inventaire():
     if not est_authentifie():
         # Si l'utilisateur n'est pas authentifié, redirection vers le formulaire d'authentification
         return redirect(url_for('authentification'))
