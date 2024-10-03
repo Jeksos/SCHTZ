@@ -10,7 +10,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
 @app.route('/')
 def acceuil():
-    return render_template('hello.html')
+    return render_template('accueil.html')
 
 # Fonction pour créer une clé "authentifie" dans la session utilisateur
 def est_authentifie():
@@ -50,9 +50,9 @@ def authentification():
             return redirect(url_for('MenuAccueil'))
         else:
             # Afficher un message d'erreur si les identifiants sont incorrects
-            return render_template('formulaire_authentification.html', error="Identifiants incorrects")
+            return render_template('form_authentification.html', error="Identifiants incorrects")
 
-    return render_template('formulaire_authentification.html', error=False)
+    return render_template('form_authentification.html', error=False)
 
 @app.route('/menu_accueil')
 def MenuAccueil():
