@@ -8,51 +8,59 @@
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>  
     <style>
-      
-       body {
-                    background-color: #007BFF; /* Bleu pour l'arrière-plan */
-                  }
+        /* Général pour la page */
+        body {
+            background-color: #007BFF; /* Bleu pour l'arrière-plan */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center; /* Centrage horizontal */
+            align-items: center; /* Centrage vertical */
+            height: 100vh; /* Hauteur de la fenêtre pour centrer */
+            font-family: Arial, sans-serif;
+        }
+
         /* Container du formulaire */
-.form-container {
-    background-color: #007BFF; /* Bleu pour l'arrière-plan */
-    padding: 50px; /* Augmentation du padding pour plus d'espace */
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 400px; /* Augmentation de la largeur */
-    height: auto; /* Hauteur automatique, s'ajuste au contenu */
-    text-align: center;
-}
+        .form-container {
+            background-color: whit; /* Contraste avec le fond bleu */
+            padding: 50px; /* Espace à l'intérieur du container */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
+            width: 400px; /* Largeur définie */
+            height: auto; /* Ajustement de la hauteur selon le contenu */
+            text-align: center; /* Centrage du texte */
+        }
 
-/* Style des champs du formulaire */
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 15px; /* Augmentation du padding pour plus de confort */
-    margin-bottom: 30px; /* Réduction de la marge pour équilibrer l'espacement */
-    border: none;
-    border-radius: 5px;
-}
+        /* Style des champs du formulaire */
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px; /* Espacement entre les champs */
+            border: 1px solid #ccc; /* Bordure légère */
+            border-radius: 5px;
+            box-sizing: border-box; /* Assure que la largeur inclut padding et bordure */
+            font-size: 16px;
+        }
 
-/* Style du bouton de soumission */
-input[type="submit"] {
-    background-color: #7FFF00;
-    color: #007BFF;
-    border: none;
-    padding: 15px; /* Augmentation du padding pour le bouton */
-    width: 100%;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
-  
-}
+        /* Style du bouton de soumission */
+        input[type="submit"] {
+            background-color: #7FFF0; /* Couleur verte pour le bouton */
+            color: #007BFF;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
 
-/* Effet de survol pour le bouton */
-input[type="submit"]:hover {
-    background-color: #0056b3;
-    color: white;
-}
-
+        /* Effet de survol pour le bouton */
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+            color: white;
+        }
     </style>
 </head>
 
@@ -60,8 +68,7 @@ input[type="submit"]:hover {
     <div class="form-container">
         <h2>Authentification</h2>
 
-        <!-- Message d'erreur si les identifiants sont incorrects -->
-        
+        <!-- Formulaire d'authentification -->
         <form action="{{ url_for('authentification') }}" method="POST">
             <input type="text" id="username" name="username" placeholder="Nom d'utilisateur" required>
             <input type="password" id="password" name="password" placeholder="Mot de passe" required>
