@@ -23,30 +23,6 @@
             text-align: center;
         }
 
-        /* Circular title styling - Positioned at top-left */
-        .message-circle {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: inline-block;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: linear-gradient(270deg, red, yellow, blue); /* Gradient background */
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            font-weight: bold;
-            animation: rotate 30s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Container styling */
         .container {
             background-color: rgba(255, 255, 255, 0.1); /* Transparent white for contrast */
@@ -113,8 +89,6 @@
     </style>
 </head>
 <body>
-    <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
-    
     <div class="container">
         <h1>Ranger un Composant</h1>
         <form action="/ajouter_composant" method="POST">
