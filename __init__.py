@@ -32,7 +32,7 @@ def inventaire():
     data = cursor.fetchall()
     conn.close()
 
-    return render_template('page_lecture.html', data=data)
+    return render_template('page_inventaire.html', data=data)
 
 @app.route('/authentification_user', methods=['GET', 'POST'])
 def authentification():
