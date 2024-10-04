@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plateforme SCHUTZ</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
@@ -21,30 +21,6 @@
             height: 100vh;
             flex-direction: column;
             text-align: center;
-        }
-
-        /* Circular title styling - Positioned at top-left */
-        .message-circle {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: inline-block;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: linear-gradient(270deg, red, yellow, blue);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            font-weight: bold;
-            animation: rotate 38s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         /* Container styling */
@@ -77,7 +53,7 @@
         }
 
         button {
-            background-color: #ffeb3;
+            background-color: #7FFF00;
             color: green;
             font-weight: bold;
             padding: 10px 20px;
@@ -88,7 +64,7 @@
         }
 
         button:hover {
-            background-color: #fff176;
+            background-color: #00FFFF;
         }
 
         /* Result message styling */
@@ -124,12 +100,13 @@
     </style>
 </head>
 <body>
-    <div class="message-circle">Bienvenue sur la plateforme SCHUTZ</div>
+    <!-- Removed the rotating message-circle here -->
     
     <div class="container">
-        <h1>Rechercher une Référence</h1>
+        <h1>Chercher une Référence</h1>
+      
         <form action="/recherche" method="POST">
-            <input type="number" min="1000000" max="9999999" id="reference" name="reference" placeholder="Entrez la référence" required>
+             <input type="number" min="1000000" max="9999999" id="reference" name="reference" placeholder="Entrez la référence" required>
             
             <!--<button type="submit" name="recherche" value="recherche">Rechercher</button>-->
             <button type="submit" name="recherche" value="valider">Valider</button>
@@ -142,11 +119,9 @@
             <ul>
                 {% for item in data %}
                 <li>Allée: {{ item[2] }}, Emplacement: {{ item[3] }}, Référence: {{ item[0] }}, Date: {{ item[1] }}</li>
-                <!-- <li name="resultat_ok">Allée: {{ item[2] }}, Emplacement: {{ item[3] }}, Référence: {{ item[0] }}, Date: {{ item[1] }}</li>  -->
                 {% endfor %}
             </ul>
         {% else %}
-           <!-- <p>Aucun résultat trouvé pour cette référence.</p> -->
             <p name="resultat_nok">Aucun résultat trouvé pour cette référence.</p>
         {% endif %} 
 
