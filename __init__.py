@@ -56,6 +56,9 @@ def authentification():
 
 @app.route('/menu_accueil')
 def MenuAccueil():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
     # Afficher la page HTML
     if session['chef'] == True:
         return render_template('page_chef.html')
