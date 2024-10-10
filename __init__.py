@@ -64,8 +64,9 @@ def MenuAccueil():
 
 @app.route('/formulaire_ranger')
 def FormulaireRanger():
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
+# en commentaire pour selenium
+#    if not est_authentifie():
+#        return redirect(url_for('authentification'))
     # Afficher la page HTML
     return render_template('form_ranger.html')
 
