@@ -82,6 +82,10 @@
             margin: 10px 0;
             padding: 10px;
             border-radius: 5px;
+            font-size: 14px; /* Reduced font size */
+            white-space: nowrap; /* Ensure single line */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis (...) for overflowing text */
         }
 
         /* Return to main page link styling */
@@ -100,15 +104,12 @@
     </style>
 </head>
 <body>
-    <!-- Removed the rotating message-circle here -->
-    
     <div class="container">
         <h1>Chercher une Référence</h1>
       
         <form action="/recherche" method="POST">
              <input type="number" min="1000000" max="9999999" id="reference" name="reference" placeholder="Entrez la référence" required>
             
-            <!--<button type="submit" name="recherche" value="recherche">Rechercher</button>-->
             <button type="submit" name="recherche" value="valider">Valider</button>
 
             <div id="message"></div>
