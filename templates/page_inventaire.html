@@ -6,24 +6,38 @@
     <title>Inventaire</title>
     <style>
         body {
-             background-color: #007BFF; /* Arrière-plan blan */
+            background-color: #007BFF; /* Arrière-plan bleu */
+            font-family: Arial, sans-serif;
         }
-      table {
-             background-color: white; /* Arrière-plan blan */
-        }
-       h1 {
+        h1 {
             text-align: center; /* Centrer le titre */
             color: yellow; /* Titre en jaune */
         }
-        
-      
+        table {
+            background-color: white; /* Arrière-plan blanc pour le tableau */
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .return-link {
+            display: inline-block;
+            margin-bottom: 20px; /* Ajoute de l'espace en dessous du lien */
+            color: white; 
+            text-decoration: none;
+        }
+        .return-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <h1>Inventaire</h1>
 
     <!-- Return link -->
-    <a href="/menu_accueil" class="return-link">Retour à l'accueil</a> <br>
+    <a href="/menu_accueil" class="return-link">Retour à l'accueil</a>
     
     <table border="1">
         <thead>
