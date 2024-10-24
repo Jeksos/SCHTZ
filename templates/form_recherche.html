@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -108,7 +109,7 @@
         <h1>Chercher une Référence</h1>
       
         <form action="/recherche" method="POST">
-             <input type="number"  id="reference" name="reference" placeholder="Entrez la référence" required>
+               <input type="number" min="1000000" max="9999999" id="reference" name="reference" placeholder="Entrez la référence" required>
             
             <button type="submit" name="recherche" value="valider">Valider</button>
 
