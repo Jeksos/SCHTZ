@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------------------------------
-PROJET SCHUTZ
+PROJET SCHTZ
 ------------------------------------------------------------------------------------------------------
 INTRODUCTION
 Objectif du projet : Optimiser la gestion et le stockage des accessoires informatiques pour améliorer l'efficacité opérationnelle.
