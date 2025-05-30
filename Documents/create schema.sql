@@ -5,15 +5,15 @@
 -- * Generator date: Sep 14 2021              
 -- * Generation date: Thu Jul 25 15:45:43 2024 
 -- * LUN file: C:\Users\SOSO\Documents\FORMATION\CNAM\projet\projas.lun 
--- * Schema: SCHUTZ/1 
+-- * Schema: SCHTZ/1 
 -- ********************************************* 
 
 
 -- Database Section
 -- ________________ 
 
--- create database SCHUTZ;
--- use SCHUTZ;
+-- create database SCHTZ;
+-- use SCHTZ;
 
 
 -- Tables Section
