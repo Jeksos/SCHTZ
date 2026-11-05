@@ -56,10 +56,10 @@
         <div class="ligne">
             <div class="infos">
                 <strong>{{ article['REF'] }}</strong>
-                <span>Emplacement {{ article['ALLEE_ID'] }}-{{ article['ID'] }}, rangé le {{ article['Date'] }}</span>
+                <span>Emplacement {{ article['ALLEE_ID'] }}-{{ article['ID'] }}, rangé le {{ article['Date']|date_fr }}</span>
             </div>
             {% if article['DATE_ARRET'] %}
-            <span>Arrêt prévu le {{ article['DATE_ARRET'] }}</span>
+            <span>Arrêt prévu le {{ article['DATE_ARRET']|date_fr }}</span>
             {% else %}
             <form action="{{ url_for('pilotage_arret') }}" method="POST">
                 <input type="hidden" name="reference" value="{{ article['REF'] }}">
@@ -98,7 +98,7 @@
         {% for message in messages %}
         <div class="ligne">
             <div class="infos">
-                <strong>{{ message['NOM'] }} : arrêt de {{ message['REF'] }} le {{ message['DATE_ARRET'] }}</strong>
+                <strong>{{ message['NOM'] }} : arrêt de {{ message['REF'] }} le {{ message['DATE_ARRET']|date_fr }}</strong>
                 <span>{{ message['EMAIL'] }}</span>
             </div>
             <div class="actions">

@@ -21,6 +21,14 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 def acceuil():
     return render_template('accueil.html', produits_arretes=lire_produits_arretes())
 
+# Affiche une date AAAA-MM-JJ au format JJ/MM/AAAA
+@app.template_filter('date_fr')
+def date_fr(valeur):
+    try:
+        return date_iso.fromisoformat(str(valeur)).strftime('%d/%m/%Y')
+    except ValueError:
+        return valeur
+
 # Références dont l'arrêt est annoncé. Liste vide si la migration n'a pas encore été lancée.
 def lire_produits_arretes():
     conn = sqlite3.connect('schutz.db')
