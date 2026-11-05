@@ -65,7 +65,7 @@
   </head>
   <body>
     {% if produits_arretes %}
-    <div role="status" style="box-sizing: border-box; width: 100%; background-color: #7FFF00; color: #000; border-bottom: 2px solid green; padding: 10px 16px; text-align: center; font-weight: bold;">
+    <div role="status" style="box-sizing: border-box; width: 100%; background-color: #32CD32; color: #000; border-bottom: 2px solid green; padding: 10px 16px; text-align: center; font-weight: bold;">
         {% for produit in produits_arretes %}
         <div>Nous arrêtons la référence {{ produit[0] }} le {{ produit[1]|date_fr }}.</div>
         {% endfor %}
