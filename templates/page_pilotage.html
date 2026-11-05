@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilotage de l'agent</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: #007BFF; font-family: Arial, sans-serif; color: #1a1a1a; margin: 0; padding: 16px; }
+        main { max-width: 900px; margin: 0 auto; }
+        h1 { color: yellow; text-align: center; margin: 8px 0 16px; }
+        .retour { color: white; font-weight: bold; }
+        .avis { background: #FFEB3B; padding: 10px 14px; border-radius: 5px; margin: 12px 0; font-weight: bold; }
+        section { background: white; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        h2 { margin: 0 0 4px; font-size: 20px; color: #0056b3; }
+        .aide { margin: 0 0 12px; color: #555; font-size: 14px; }
+        .vide { margin: 0; color: #555; font-style: italic; }
+        .ligne { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; padding: 10px 0; border-top: 1px solid #e3e3e3; }
+        .ligne:first-of-type { border-top: 0; }
+        .infos strong { display: block; }
+        .infos span { color: #555; font-size: 14px; overflow-wrap: anywhere; }
+        form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+        input { padding: 8px; border: 1px solid #999; border-radius: 5px; font-size: 16px; max-width: 100%; }
+        button { padding: 8px 14px; border: 0; border-radius: 5px; font-size: 15px; font-weight: bold; cursor: pointer; background: #007BFF; color: white; }
+        button.secondaire { background: #e9ecef; color: #1a1a1a; }
+        button.danger { background: #c62828; }
+        .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    </style>
+</head>
+<body>
+<main>
+    <a class="retour" href="/menu_accueil">Retour à l'accueil</a>
+    <h1>Pilotage de l'agent</h1>
+
+    {% for message in get_flashed_messages() %}
+    <div class="avis" role="status">{{ message }}</div>
+    {% endfor %}
+
+    <section>
+        <h2>Décider un arrêt</h2>
+        <p class="aide">Pour n'importe quelle référence du catalogue. La décision affiche le bandeau sur l'accueil et prépare les messages clients.</p>
+        <form action="{{ url_for('pilotage_arret') }}" method="POST">
+            <label for="reference">Référence</label>
+            <input id="reference" name="reference" required>
+            <label for="date_arret">Date d'arrêt</label>
+            <input id="date_arret" type="date" name="date_arret" required>
+            <button type="submit">Arrêter ce produit</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>À liquider</h2>
+        <p class="aide">En stock depuis plus de 3 mois, pas rentables ou déjà arrêtés.</p>
+        {% for article in a_liquider %}
+        <div class="ligne">
+            <div class="infos">
+                <strong>{{ article['REF'] }}</strong>
+                <span>Emplacement {{ article['ALLEE_ID'] }}-{{ article['ID'] }}, rangé le {{ article['Date'] }}</span>
+            </div>
+            {% if article['DATE_ARRET'] %}
+            <span>Arrêt prévu le {{ article['DATE_ARRET'] }}</span>
+            {% else %}
+            <form action="{{ url_for('pilotage_arret') }}" method="POST">
+                <input type="hidden" name="reference" value="{{ article['REF'] }}">
+                <input type="date" name="date_arret" aria-label="Date d'arrêt de {{ article['REF'] }}" required>
+                <button type="submit">Arrêter</button>
+            </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <p class="vide">Rien à liquider.</p>
+        {% endfor %}
+    </section>
+
+    <section>
+        <h2>Commandes à valider</h2>
+        <p class="aide">La validation n'envoie rien pour l'instant.</p>
+        {% for commande in commandes %}
+        <div class="ligne">
+            <div class="infos">
+                <strong>{{ commande['REF'] }} × {{ commande['QUANTITE'] }}</strong>
+                <span>{{ commande['FOURNISSEUR'] }}</span>
+            </div>
+            <div class="actions">
+                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='valider') }}" method="POST"><button type="submit">Valider</button></form>
+                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='annuler') }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
+            </div>
+        </div>
+        {% else %}
+        <p class="vide">Aucune commande à valider.</p>
+        {% endfor %}
+    </section>
+
+    <section>
+        <h2>Messages clients à valider</h2>
+        <p class="aide">La validation n'envoie rien pour l'instant.</p>
+        {% for message in messages %}
+        <div class="ligne">
+            <div class="infos">
+                <strong>{{ message['NOM'] }} : arrêt de {{ message['REF'] }} le {{ message['DATE_ARRET'] }}</strong>
+                <span>{{ message['EMAIL'] }}</span>
+            </div>
+            <div class="actions">
+                <form action="{{ url_for('pilotage_message', message_id=message['MESSAGE_ID'], action='valider') }}" method="POST"><button type="submit">Valider</button></form>
+                <form action="{{ url_for('pilotage_message', message_id=message['MESSAGE_ID'], action='annuler') }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
+            </div>
+        </div>
+        {% else %}
+        <p class="vide">Aucun message à valider.</p>
+        {% endfor %}
+    </section>
+
+    <section>
+        <h2>À supprimer du catalogue</h2>
+        <p class="aide">Stock vide, et produit arrêté, pas rentable ou trop ancien. L'historique des commandes est conservé.</p>
+        {% for reference in a_supprimer %}
+        <div class="ligne">
+            <div class="infos"><strong>{{ reference['REF'] }}</strong></div>
+            <form action="{{ url_for('pilotage_supprimer') }}" method="POST">
+                <input type="hidden" name="reference" value="{{ reference['REF'] }}">
+                <button class="danger" type="submit">Supprimer</button>
+            </form>
+        </div>
+        {% else %}
+        <p class="vide">Rien à supprimer.</p>
+        {% endfor %}
+    </section>
+</main>
+</body>
+</html>

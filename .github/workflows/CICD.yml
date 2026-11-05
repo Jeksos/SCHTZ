@@ -11,7 +11,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            cd $HOME/www/
+            cd $HOME/
   Copy:
     needs: Connexion
     runs-on: ubuntu-latest
@@ -24,14 +24,16 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           script: |
             last_directory=$(basename ${{ runner.workspace }})
-            cd $HOME/www/
+            cd $HOME/
+            rm -rf ./$last_directory
             git clone https://github.com/${{ github.repository }}.git
             # Vérifier si le répertoire de destination existe
-            if [ "$(ls -A ./flask)" ]; then
-              rsync -r ./$last_directory/ ./flask
+            if [ "$(ls -A ./app)" ]; then
+              rsync -r --exclude '.git' ./$last_directory/ ./app
               rm -rf ./$last_directory
             else
-              echo "Le répertoire flask de destination sur votre serveur n'existe pas"
+              echo "Le répertoire app de destination sur votre serveur n'existe pas"
+              rm -rf ./$last_directory
               exit 1
             fi
   Restart:

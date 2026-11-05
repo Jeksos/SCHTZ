@@ -17,8 +17,8 @@ https:jeksos.alwaysdata.net/lecture
 L'accès à l'inventaire est conditionné à un contrôle d'accès  
 
 https:jeksos.alwaysdata.net/authentification_user  
-Page d'authentification (chef, equipe) 
-Page d'authentification (techos, tech1)
+Page d'authentification (compte chef)
+Page d'authentification (compte techos)
 
 
 https:jeksos.alwaysdata.net/recherche   
