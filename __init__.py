@@ -9,6 +9,8 @@ import sqlite3
 from functools import wraps
 
 app = Flask(__name__)                                                                                                                  
+# Nom attendu par uWSGI sur Alwaysdata
+application = app
 # Clé secrète des sessions. Sans SECRET_KEY, une clé temporaire déconnecte tout le monde au redémarrage.
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
 # Empêche un autre site d'envoyer les formulaires à la place d'un utilisateur connecté
