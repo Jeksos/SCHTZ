@@ -214,15 +214,15 @@ def enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, sourc
     return article_id
 
 
-# Crée une commande à valider pour chaque référence réglée passée sous le seuil.
+# Crée une commande en cours, avec le lot réglé par le chef, pour chaque référence réglée passée sous le seuil.
 # Écrit sans valider, comme les fonctions ci-dessus. Renvoie les références commandées.
 def creer_commandes_automatiques(cursor):
     lignes = cursor.execute('SELECT REF, FOURNISSEUR_ID, QTE_COMMANDE FROM V_A_COMMANDER WHERE STOCK_PLEIN IS NOT NULL').fetchall()
-    cursor.executemany('INSERT INTO COMMANDES (REF, FOURNISSEUR_ID, QUANTITE) VALUES (?, ?, ?)', lignes)
+    cursor.executemany("INSERT INTO COMMANDES (REF, FOURNISSEUR_ID, QUANTITE, STATUT) VALUES (?, ?, ?, 'VALIDEE')", lignes)
     return [ligne[0] for ligne in lignes]
 
 def texte_commandes_creees(references):
-    return f" Commande à valider créée pour : {', '.join(references)}." if references else ''
+    return f" Commande automatique créée pour : {', '.join(references)}." if references else ''
 
 
 @app.route('/formulaire_ranger')
@@ -712,6 +712,17 @@ def pilotage_commander():
         flash(f"Une commande est déjà en cours pour la référence {ref}.")
     finally:
         conn.close()
+    return redirect(url_for('pilotage'))
+
+# Le chef garde la main sur une commande automatique tant qu'elle n'est pas envoyée
+@app.route('/pilotage/commandes/<int:commande_id>/annuler_en_cours', methods=['POST'])
+@chef_requis
+def pilotage_annuler_en_cours(commande_id):
+    conn = connexion_agent()
+    modifie = conn.execute("UPDATE COMMANDES SET STATUT = 'ANNULEE' WHERE COMMANDE_ID = ? AND STATUT = 'VALIDEE'", (commande_id,)).rowcount
+    conn.commit()
+    conn.close()
+    flash('Commande annulée.' if modifie else "Cette commande n'est plus en cours.")
     return redirect(url_for('pilotage'))
 
 # Une commande reçue libère la référence : le seuil peut de nouveau déclencher une commande

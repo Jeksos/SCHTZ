@@ -62,7 +62,7 @@
 
     <section>
         <h2>Stock plein et lot par référence</h2>
-        <p class="aide">À {{ seuil }} % du stock plein ou moins, une commande à valider se crée toute seule. Sans réglage, pas de commande automatique.</p>
+        <p class="aide">À {{ seuil }} % du stock plein ou moins, une commande se crée toute seule avec le lot habituel. Sans réglage, pas de commande automatique.</p>
         <form action="{{ url_for('pilotage_reglage') }}" method="POST">
             <label for="reglage_reference">Référence</label>
             <input id="reglage_reference" name="reference" required>
@@ -130,14 +130,17 @@
 
     <section>
         <h2>Commandes en cours</h2>
-        <p class="aide">Marque une commande comme reçue pour que le seuil puisse en créer une nouvelle.</p>
+        <p class="aide">Rien n'est encore envoyé au fournisseur. Marque une commande comme reçue pour que le seuil puisse en créer une nouvelle.</p>
         {% for commande in commandes_en_cours %}
         <div class="ligne">
             <div class="infos">
                 <strong>{{ commande['REF'] }} × {{ commande['QUANTITE'] }}</strong>
                 <span>{{ commande['FOURNISSEUR'] }}</span>
             </div>
-            <form action="{{ url_for('pilotage_cloturer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button type="submit">Reçue</button></form>
+            <div class="actions">
+                <form action="{{ url_for('pilotage_cloturer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button type="submit">Reçue</button></form>
+                <form action="{{ url_for('pilotage_annuler_en_cours', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
+            </div>
         </div>
         {% else %}
         <p class="vide">Aucune commande en cours.</p>
