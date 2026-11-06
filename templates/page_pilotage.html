@@ -51,26 +51,6 @@
     </section>
 
     <section>
-        <h2>Décider un arrêt</h2>
-        <p class="aide">Pour n'importe quelle référence du catalogue. La décision prépare les messages clients.</p>
-        <form action="{{ url_for('pilotage_arret') }}" method="POST">
-            <label for="reference">Référence</label>
-            <select id="reference" name="reference" required>
-                <option value="">Choisir une référence</option>
-                {% for ref in references %}<option value="{{ ref }}">{{ ref }}</option>{% endfor %}
-            </select>
-            <label for="date_arret">Date d'arrêt</label>
-            <input id="date_arret" type="date" name="date_arret" required>
-            <label for="motif_arret">Motif</label>
-            <select id="motif_arret" name="motif" required>
-                <option value="">Choisir un motif</option>
-                {% for motif in motifs_arret %}<option value="{{ motif }}">{{ motif }}</option>{% endfor %}
-            </select>
-            <button type="submit">Arrêter ce produit</button>
-        </form>
-    </section>
-
-    <section>
         <h2>Commander maintenant</h2>
         <p class="aide">Tu connais ton stock : commande quand tu veux, sans attendre le seuil.</p>
         <form action="{{ url_for('pilotage_commander') }}" method="POST">
@@ -109,6 +89,26 @@
     </section>
 
     <section>
+        <h2>Décider un arrêt</h2>
+        <p class="aide">Pour n'importe quelle référence du catalogue. La décision prépare les messages clients.</p>
+        <form action="{{ url_for('pilotage_arret') }}" method="POST">
+            <label for="reference">Référence</label>
+            <select id="reference" name="reference" required>
+                <option value="">Choisir une référence</option>
+                {% for ref in references %}<option value="{{ ref }}">{{ ref }}</option>{% endfor %}
+            </select>
+            <label for="date_arret">Date d'arrêt</label>
+            <input id="date_arret" type="date" name="date_arret" required>
+            <label for="motif_arret">Motif</label>
+            <select id="motif_arret" name="motif" required>
+                <option value="">Choisir un motif</option>
+                {% for motif in motifs_arret %}<option value="{{ motif }}">{{ motif }}</option>{% endfor %}
+            </select>
+            <button type="submit">Arrêter ce produit</button>
+        </form>
+    </section>
+
+    <section>
         <h2>À liquider</h2>
         <p class="aide">En stock depuis plus de 3 mois, pas rentables ou déjà arrêtés : pour offre promotionnelle ou solde.</p>
         {% for article in a_liquider %}
@@ -137,28 +137,6 @@
     </section>
 
     <section>
-        <h2>Commandes à valider</h2>
-        <p class="aide">Ajuste le lot avant de valider. Une commande validée passe dans « Commandes en cours », d'où tu peux l'envoyer.</p>
-        {% for commande in commandes %}
-        <div class="ligne">
-            <div class="infos">
-                <strong>{{ commande['REF'] }}</strong>
-                <span>{{ commande['FOURNISSEUR'] }}</span>
-            </div>
-            <div class="actions">
-                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='valider') }}" method="POST">
-                    <input type="number" name="quantite" min="1" value="{{ commande['QUANTITE'] }}" aria-label="Lot de {{ commande['REF'] }}" required>
-                    <button type="submit">Valider</button>
-                </form>
-                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='annuler') }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
-            </div>
-        </div>
-        {% else %}
-        <p class="vide">Aucune commande à valider.</p>
-        {% endfor %}
-    </section>
-
-    <section>
         <h2>Commandes en cours</h2>
         <p class="aide">Envoie la commande au fournisseur par mail, puis marque-la comme reçue. Elle se clôture toute seule quand ses articles sont rangés.</p>
         {% for commande in commandes_en_cours %}
@@ -183,6 +161,28 @@
         </div>
         {% else %}
         <p class="vide">Aucune commande en cours.</p>
+        {% endfor %}
+    </section>
+
+    <section>
+        <h2>Commandes à valider</h2>
+        <p class="aide">Ajuste le lot avant de valider. Une commande validée passe dans « Commandes en cours », d'où tu peux l'envoyer.</p>
+        {% for commande in commandes %}
+        <div class="ligne">
+            <div class="infos">
+                <strong>{{ commande['REF'] }}</strong>
+                <span>{{ commande['FOURNISSEUR'] }}</span>
+            </div>
+            <div class="actions">
+                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='valider') }}" method="POST">
+                    <input type="number" name="quantite" min="1" value="{{ commande['QUANTITE'] }}" aria-label="Lot de {{ commande['REF'] }}" required>
+                    <button type="submit">Valider</button>
+                </form>
+                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='annuler') }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
+            </div>
+        </div>
+        {% else %}
+        <p class="vide">Aucune commande à valider.</p>
         {% endfor %}
     </section>
 
