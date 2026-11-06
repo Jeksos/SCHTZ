@@ -55,6 +55,38 @@ create table if not exists SIGNALEMENTS (
 
 create index if not exists IX_SIGNALEMENT_REF on SIGNALEMENTS (REF, STATUT);
 
+-- Stock plein de chaque reference, regle par le chef. Sans reglage, pas de commande automatique.
+create table if not exists REGLAGES_STOCK (
+     REF varchar(50) primary key,
+     STOCK_PLEIN integer not null check (STOCK_PLEIN > 0));
+
+-- Seuil de commande automatique, en pourcentage du stock plein. Une seule ligne.
+create table if not exists PARAMETRES_COMMANDE (
+     PARAMETRE_ID integer primary key check (PARAMETRE_ID = 1),
+     SEUIL_POURCENT integer not null check (SEUIL_POURCENT between 1 and 100));
+
+insert or ignore into PARAMETRES_COMMANDE (PARAMETRE_ID, SEUIL_POURCENT) values (1, 20);
+
+-- References a commander. Avec un stock plein : au seuil ou en dessous.
+-- Sans stock plein : l'ancienne regle du stock minimum, utilisee par l'agent.
+drop view if exists V_A_COMMANDER;
+create view V_A_COMMANDER as
+select c.REF, c.FOURNISSEUR_ID, f.NOM as FOURNISSEUR, f.EMAIL, c.QTE_COMMANDE,
+       (select count(*) from INVENTAIRE i where i.REF = c.REF) as EN_STOCK,
+       r.STOCK_PLEIN
+from CATALOGUE c
+join FOURNISSEURS f on f.FOURNISSEUR_ID = c.FOURNISSEUR_ID
+left join REGLAGES_STOCK r on r.REF = c.REF
+where c.REF in (select REF from V_REFERENCES_VALABLES)
+  and case when r.STOCK_PLEIN is not null
+           then (select count(*) from INVENTAIRE i where i.REF = c.REF) * 100
+                <= r.STOCK_PLEIN * (select SEUIL_POURCENT from PARAMETRES_COMMANDE)
+           else (select count(*) from INVENTAIRE i where i.REF = c.REF) < c.STOCK_MIN
+      end
+  and not exists (select 1 from COMMANDES o
+                  where o.REF = c.REF
+                    and o.STATUT in ('A_VALIDER', 'VALIDEE', 'ENVOYEE', 'RECUE'));
+
 -- Reprise du stock existant : un article et une entree pour chaque ligne d'inventaire.
 insert into ARTICLES (REF, ALLEE_ID, EMPLACEMENT_ID, DATE_ENTREE)
 select i.REF, i.ALLEE_ID, i.ID, i.Date

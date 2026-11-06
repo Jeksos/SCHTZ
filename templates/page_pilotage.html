@@ -49,6 +49,40 @@
     </section>
 
     <section>
+        <h2>Commander maintenant</h2>
+        <p class="aide">Tu connais ton stock : commande quand tu veux, sans attendre le seuil.</p>
+        <form action="{{ url_for('pilotage_commander') }}" method="POST">
+            <label for="commande_reference">Référence</label>
+            <input id="commande_reference" name="reference" required>
+            <label for="commande_lot">Lot</label>
+            <input id="commande_lot" type="number" name="quantite" min="1" required>
+            <button type="submit">Commander</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>Stock plein et lot par référence</h2>
+        <p class="aide">À {{ seuil }} % du stock plein ou moins, une commande à valider se crée toute seule. Sans réglage, pas de commande automatique.</p>
+        <form action="{{ url_for('pilotage_reglage') }}" method="POST">
+            <label for="reglage_reference">Référence</label>
+            <input id="reglage_reference" name="reference" required>
+            <label for="reglage_plein">Stock plein</label>
+            <input id="reglage_plein" type="number" name="stock_plein" min="1" required>
+            <label for="reglage_lot">Lot habituel</label>
+            <input id="reglage_lot" type="number" name="lot" min="1" required>
+            <button type="submit">Enregistrer</button>
+        </form>
+        {% for reglage in reglages %}
+        <div class="ligne">
+            <div class="infos">
+                <strong>{{ reglage['REF'] }}</strong>
+                <span>{{ reglage['EN_STOCK'] }} en stock sur {{ reglage['STOCK_PLEIN'] }}, lot habituel {{ reglage['QTE_COMMANDE'] }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+
+    <section>
         <h2>À liquider</h2>
         <p class="aide">En stock depuis plus de 3 mois, pas rentables ou déjà arrêtés.</p>
         {% for article in a_liquider %}
@@ -74,20 +108,39 @@
 
     <section>
         <h2>Commandes à valider</h2>
-        <p class="aide">La validation n'envoie rien pour l'instant.</p>
+        <p class="aide">Ajuste le lot avant de valider. La validation n'envoie rien au fournisseur pour l'instant.</p>
         {% for commande in commandes %}
         <div class="ligne">
             <div class="infos">
-                <strong>{{ commande['REF'] }} × {{ commande['QUANTITE'] }}</strong>
+                <strong>{{ commande['REF'] }}</strong>
                 <span>{{ commande['FOURNISSEUR'] }}</span>
             </div>
             <div class="actions">
-                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='valider') }}" method="POST"><button type="submit">Valider</button></form>
+                <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='valider') }}" method="POST">
+                    <input type="number" name="quantite" min="1" value="{{ commande['QUANTITE'] }}" aria-label="Lot de {{ commande['REF'] }}" required>
+                    <button type="submit">Valider</button>
+                </form>
                 <form action="{{ url_for('pilotage_commande', commande_id=commande['COMMANDE_ID'], action='annuler') }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
             </div>
         </div>
         {% else %}
         <p class="vide">Aucune commande à valider.</p>
+        {% endfor %}
+    </section>
+
+    <section>
+        <h2>Commandes en cours</h2>
+        <p class="aide">Marque une commande comme reçue pour que le seuil puisse en créer une nouvelle.</p>
+        {% for commande in commandes_en_cours %}
+        <div class="ligne">
+            <div class="infos">
+                <strong>{{ commande['REF'] }} × {{ commande['QUANTITE'] }}</strong>
+                <span>{{ commande['FOURNISSEUR'] }}</span>
+            </div>
+            <form action="{{ url_for('pilotage_cloturer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button type="submit">Reçue</button></form>
+        </div>
+        {% else %}
+        <p class="vide">Aucune commande en cours.</p>
         {% endfor %}
     </section>
 

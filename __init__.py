@@ -213,6 +213,17 @@ def enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, sourc
     return article_id
 
 
+# Crée une commande à valider pour chaque référence réglée passée sous le seuil.
+# Écrit sans valider, comme les fonctions ci-dessus. Renvoie les références commandées.
+def creer_commandes_automatiques(cursor):
+    lignes = cursor.execute('SELECT REF, FOURNISSEUR_ID, QTE_COMMANDE FROM V_A_COMMANDER WHERE STOCK_PLEIN IS NOT NULL').fetchall()
+    cursor.executemany('INSERT INTO COMMANDES (REF, FOURNISSEUR_ID, QUANTITE) VALUES (?, ?, ?)', lignes)
+    return [ligne[0] for ligne in lignes]
+
+def texte_commandes_creees(references):
+    return f" Commande à valider créée pour : {', '.join(references)}." if references else ''
+
+
 @app.route('/formulaire_ranger')
 @connexion_requise
 def FormulaireRanger():
@@ -266,10 +277,11 @@ def ViderEmplacement():
     cursor.execute('DELETE FROM inventaire WHERE ALLEE_ID = ? AND ID = ?', (allee_id, id))
     for ref, date_entree in lignes:
         enregistrer_sortie(cursor, ref, allee_id, id, date_entree, 'MANUEL')
+    commandes_creees = creer_commandes_automatiques(cursor)
     conn.commit()
     conn.close()
     
-    return render_template('form_vider.html', message = "L'emplacement %s-%s est libéré" % (allee_id, id))
+    return render_template('form_vider.html', message = "L'emplacement %s-%s est libéré." % (allee_id, id) + texte_commandes_creees(commandes_creees))
 
 # ----- Produits à problème -----
 # Un produit signalé sort du stock : il n'est plus disponible et l'agent peut en recommander.
@@ -343,11 +355,12 @@ def signalements():
             article_id = enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, 'MANUEL')
         cursor.execute('INSERT INTO SIGNALEMENTS (ARTICLE_ID, REF, MOTIF, COMMENTAIRE, UTILISATEUR) VALUES (?, ?, ?, ?, ?)',
                        (article_id, ref, motif, commentaire, utilisateur_connecte()))
+        commandes_creees = creer_commandes_automatiques(cursor)
         conn.commit()
     finally:
         conn.close()
     if ligne:
-        flash(f"Référence {ref} retirée du stock (emplacement {allee_id}-{emplacement_id}).")
+        flash(f"Référence {ref} retirée du stock (emplacement {allee_id}-{emplacement_id})." + texte_commandes_creees(commandes_creees))
     else:
         flash(f"Signalement enregistré pour la référence {ref}. Le stock ne change pas.")
     return redirect(url_for('signalements'))
@@ -528,6 +541,15 @@ def pilotage():
             "SELECT o.COMMANDE_ID, o.REF, o.QUANTITE, f.NOM AS FOURNISSEUR FROM COMMANDES o "
             "JOIN FOURNISSEURS f ON f.FOURNISSEUR_ID = o.FOURNISSEUR_ID "
             "WHERE o.STATUT = 'A_VALIDER' ORDER BY o.DATE_CREATION").fetchall(),
+        'commandes_en_cours': conn.execute(
+            "SELECT o.COMMANDE_ID, o.REF, o.QUANTITE, f.NOM AS FOURNISSEUR FROM COMMANDES o "
+            "JOIN FOURNISSEURS f ON f.FOURNISSEUR_ID = o.FOURNISSEUR_ID "
+            "WHERE o.STATUT = 'VALIDEE' ORDER BY o.DATE_CREATION").fetchall(),
+        'reglages': conn.execute(
+            "SELECT r.REF, r.STOCK_PLEIN, c.QTE_COMMANDE, "
+            "(SELECT count(*) FROM INVENTAIRE i WHERE i.REF = r.REF) AS EN_STOCK "
+            "FROM REGLAGES_STOCK r JOIN CATALOGUE c ON c.REF = r.REF ORDER BY r.REF").fetchall(),
+        'seuil': conn.execute('SELECT SEUIL_POURCENT FROM PARAMETRES_COMMANDE').fetchone()[0],
         'messages': conn.execute(
             "SELECT m.MESSAGE_ID, m.REF, c.NOM, c.EMAIL, ca.DATE_ARRET FROM MESSAGES m "
             "JOIN CLIENTS c ON c.CLIENT_ID = m.CLIENT_ID "
@@ -564,6 +586,77 @@ def pilotage_arret():
         conn.close()
     return redirect(url_for('pilotage'))
 
+def lire_entier_positif(champ):
+    try:
+        valeur = int(request.form.get(champ, ''))
+    except ValueError:
+        return None
+    return valeur if valeur > 0 else None
+
+# Le chef règle le stock plein et le lot habituel d'une référence
+@app.route('/pilotage/reglage', methods=['POST'])
+@chef_requis
+def pilotage_reglage():
+    ref = request.form.get('reference', '').strip()
+    stock_plein = lire_entier_positif('stock_plein')
+    lot = lire_entier_positif('lot')
+    if stock_plein is None or lot is None:
+        flash('Le stock plein et le lot doivent être supérieurs à zéro.')
+        return redirect(url_for('pilotage'))
+    conn = connexion_agent()
+    try:
+        cursor = conn.cursor()
+        if not cursor.execute('UPDATE CATALOGUE SET QTE_COMMANDE = ? WHERE REF = ?', (lot, ref)).rowcount:
+            flash(f"La référence {ref} n'est pas au catalogue.")
+            return redirect(url_for('pilotage'))
+        cursor.execute('INSERT INTO REGLAGES_STOCK (REF, STOCK_PLEIN) VALUES (?, ?) '
+                       'ON CONFLICT (REF) DO UPDATE SET STOCK_PLEIN = excluded.STOCK_PLEIN', (ref, stock_plein))
+        commandes_creees = creer_commandes_automatiques(cursor)
+        conn.commit()
+        flash(f"Référence {ref} réglée." + texte_commandes_creees(commandes_creees))
+    finally:
+        conn.close()
+    return redirect(url_for('pilotage'))
+
+# Le chef connaît son stock : il peut commander à tout moment, sans attendre le seuil
+@app.route('/pilotage/commander', methods=['POST'])
+@chef_requis
+def pilotage_commander():
+    ref = request.form.get('reference', '').strip()
+    quantite = lire_entier_positif('quantite')
+    if quantite is None:
+        flash('Indique un lot supérieur à zéro.')
+        return redirect(url_for('pilotage'))
+    conn = connexion_agent()
+    try:
+        ligne = conn.execute('SELECT FOURNISSEUR_ID, DATE_ARRET FROM CATALOGUE WHERE REF = ?', (ref,)).fetchone()
+        if ligne is None:
+            flash(f"La référence {ref} n'est pas au catalogue.")
+        elif ligne['DATE_ARRET']:
+            flash(f"La référence {ref} est arrêtée : commande refusée.")
+        else:
+            conn.execute("INSERT INTO COMMANDES (REF, FOURNISSEUR_ID, QUANTITE, STATUT) VALUES (?, ?, ?, 'VALIDEE')",
+                         (ref, ligne['FOURNISSEUR_ID'], quantite))
+            conn.commit()
+            flash(f"Commande de {quantite} × {ref} enregistrée.")
+    except sqlite3.IntegrityError:
+        flash(f"Une commande est déjà en cours pour la référence {ref}.")
+    finally:
+        conn.close()
+    return redirect(url_for('pilotage'))
+
+# Une commande reçue libère la référence : le seuil peut de nouveau déclencher une commande
+@app.route('/pilotage/commandes/<int:commande_id>/cloturer', methods=['POST'])
+@chef_requis
+def pilotage_cloturer(commande_id):
+    conn = connexion_agent()
+    modifie = conn.execute("UPDATE COMMANDES SET STATUT = 'CLOTUREE', DATE_RECEPTION = datetime('now') "
+                           "WHERE COMMANDE_ID = ? AND STATUT = 'VALIDEE'", (commande_id,)).rowcount
+    conn.commit()
+    conn.close()
+    flash('Commande marquée comme reçue.' if modifie else "Cette commande n'est plus en cours.")
+    return redirect(url_for('pilotage'))
+
 def changer_statut(table, colonne, identifiant, statut):
     conn = connexion_agent()
     modifie = conn.execute(f"UPDATE {table} SET STATUT = ? WHERE {colonne} = ? AND STATUT = 'A_VALIDER'",
@@ -578,6 +671,16 @@ def pilotage_commande(commande_id, action):
     statuts = {'valider': 'VALIDEE', 'annuler': 'ANNULEE'}
     if action not in statuts:
         abort(404)
+    if action == 'valider':
+        # Le lot reste à l'appréciation du chef
+        quantite = lire_entier_positif('quantite')
+        if quantite is None:
+            flash('Indique un lot supérieur à zéro.')
+            return redirect(url_for('pilotage'))
+        conn = connexion_agent()
+        conn.execute("UPDATE COMMANDES SET QUANTITE = ? WHERE COMMANDE_ID = ? AND STATUT = 'A_VALIDER'", (quantite, commande_id))
+        conn.commit()
+        conn.close()
     if changer_statut('COMMANDES', 'COMMANDE_ID', commande_id, statuts[action]):
         flash('Commande validée.' if action == 'valider' else 'Commande annulée.')
     else:
@@ -608,6 +711,7 @@ def pilotage_supprimer():
         # Le stock est vide : les messages pas encore partis n'ont plus d'intérêt.
         conn.execute("UPDATE MESSAGES SET STATUT = 'ANNULE' WHERE REF = ? AND STATUT IN ('A_VALIDER', 'VALIDE')", (ref,))
         conn.execute('DELETE FROM CLIENTS_PRODUITS WHERE REF = ?', (ref,))
+        conn.execute('DELETE FROM REGLAGES_STOCK WHERE REF = ?', (ref,))
         conn.execute('DELETE FROM CATALOGUE WHERE REF = ?', (ref,))
         conn.commit()
         flash(f"Référence {ref} supprimée du catalogue.")
