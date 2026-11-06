@@ -3,10 +3,17 @@ from flask import json
 from urllib.request import urlopen
 from werkzeug.utils import secure_filename     
 import hmac
-from datetime import date as date_iso
+from datetime import date as date_iso, datetime, timezone
 import os
 import sqlite3
 from functools import wraps
+
+# Sans fuseau disponible sur le serveur, le journal s'affiche en heure UTC plutôt que de bloquer le site
+try:
+    from zoneinfo import ZoneInfo
+    FUSEAU_PARIS = ZoneInfo('Europe/Paris')
+except Exception:
+    FUSEAU_PARIS = None
 
 app = Flask(__name__)                                                                                                                  
 # Nom attendu par uWSGI sur Alwaysdata
@@ -15,6 +22,20 @@ application = app
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
 # Empêche un autre site d'envoyer les formulaires à la place d'un utilisateur connecté
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Crée les tables du journal au démarrage. Une erreur ici ne doit pas empêcher le site de démarrer.
+def appliquer_migration_mouvements():
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Documents', 'migration_mouvements.sql')
+    conn = sqlite3.connect('schutz.db')
+    try:
+        with open(chemin, encoding='utf-8') as fichier:
+            conn.executescript(fichier.read())
+    except (OSError, sqlite3.Error):
+        app.logger.exception('Migration du journal des mouvements impossible')
+    finally:
+        conn.close()
+
+appliquer_migration_mouvements()
 
 
 @app.route('/')
@@ -28,6 +49,19 @@ def date_fr(valeur):
         return date_iso.fromisoformat(str(valeur)).strftime('%d/%m/%Y')
     except ValueError:
         return valeur
+
+# Affiche une date du journal à l'heure de Paris. Une date sans heure reste une simple date.
+@app.template_filter('date_heure_fr')
+def date_heure_fr(valeur):
+    if len(str(valeur)) <= 10:
+        return date_fr(valeur)
+    try:
+        moment = datetime.fromisoformat(str(valeur)).replace(tzinfo=timezone.utc)
+    except ValueError:
+        return valeur
+    if FUSEAU_PARIS is None:
+        return moment.strftime('%d/%m/%Y %H:%M UTC')
+    return moment.astimezone(FUSEAU_PARIS).strftime('%d/%m/%Y %H:%M')
 
 # Références dont l'arrêt est annoncé. Liste vide si la migration n'a pas encore été lancée.
 def lire_produits_arretes():
@@ -106,6 +140,36 @@ def MenuAccueil():
     return render_template('page_techos.html')
 
 
+# ----- Articles et journal des mouvements -----
+# Tous les moyens de saisie passent par ces deux fonctions, avec ou sans lecteur.
+# Elles écrivent sans valider : l'appelant valide avec le changement d'inventaire.
+
+def utilisateur_connecte():
+    return 'chef' if session.get('chef') else 'techos'
+
+def ecrire_mouvement(cursor, article_id, ref, type_mouvement, allee_id, emplacement_id, source):
+    cursor.execute('INSERT INTO MOUVEMENTS (ARTICLE_ID, REF, TYPE, ALLEE_ID, EMPLACEMENT_ID, SOURCE, UTILISATEUR) '
+                   'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                   (article_id, ref, type_mouvement, allee_id, emplacement_id, source, utilisateur_connecte()))
+
+def enregistrer_entree(cursor, ref, allee_id, emplacement_id, date_entree, source):
+    cursor.execute('INSERT INTO ARTICLES (REF, ALLEE_ID, EMPLACEMENT_ID, DATE_ENTREE) VALUES (?, ?, ?, ?)',
+                   (ref, allee_id, emplacement_id, date_entree))
+    ecrire_mouvement(cursor, cursor.lastrowid, ref, 'ENTREE', allee_id, emplacement_id, source)
+
+def enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, source):
+    ligne = cursor.execute("SELECT ARTICLE_ID FROM ARTICLES WHERE REF = ? AND STATUT = 'EN_STOCK'", (ref,)).fetchone()
+    if ligne:
+        article_id = ligne[0]
+    else:
+        # Ligne d'inventaire ajoutée hors de l'application depuis le dernier démarrage
+        cursor.execute('INSERT INTO ARTICLES (REF, ALLEE_ID, EMPLACEMENT_ID, DATE_ENTREE) VALUES (?, ?, ?, ?)',
+                       (ref, allee_id, emplacement_id, date_entree))
+        article_id = cursor.lastrowid
+    cursor.execute("UPDATE ARTICLES SET STATUT = 'SORTI', DATE_SORTIE = datetime('now') WHERE ARTICLE_ID = ?", (article_id,))
+    ecrire_mouvement(cursor, article_id, ref, 'SORTIE', allee_id, emplacement_id, source)
+
+
 @app.route('/formulaire_ranger')
 @connexion_requise
 def FormulaireRanger():
@@ -124,6 +188,7 @@ def RangerComposant():
         conn = sqlite3.connect('schutz.db')
         cursor = conn.cursor()
         cursor.execute('INSERT INTO inventaire (REF, Date, ALLEE_ID, ID) VALUES (?, ?, ?, ?)', (ref, date, allee_id, id))
+        enregistrer_entree(cursor, ref, allee_id, id, date, 'MANUEL')
         conn.commit()
         conn.close()
         
@@ -153,7 +218,11 @@ def ViderEmplacement():
 
     conn = sqlite3.connect('schutz.db')
     cursor = conn.cursor()
+    # Un emplacement déjà vide ne crée aucun mouvement
+    lignes = cursor.execute('SELECT REF, Date FROM inventaire WHERE ALLEE_ID = ? AND ID = ?', (allee_id, id)).fetchall()
     cursor.execute('DELETE FROM inventaire WHERE ALLEE_ID = ? AND ID = ?', (allee_id, id))
+    for ref, date_entree in lignes:
+        enregistrer_sortie(cursor, ref, allee_id, id, date_entree, 'MANUEL')
     conn.commit()
     conn.close()
     
@@ -305,6 +374,23 @@ def chef_requis(vue):
             abort(403)
         return vue(*args, **kwargs)
     return verifier
+
+SOURCES_MOUVEMENT = {
+    'REPRISE': 'Reprise du stock',
+    'MANUEL': 'Saisie manuelle',
+    'SMARTPHONE': 'Smartphone',
+    'LECTEUR_PORTABLE': 'Lecteur portable',
+    'LECTEUR_FIXE': 'Lecteur fixe',
+}
+
+@app.route('/mouvements')
+@chef_requis
+def journal_mouvements():
+    limite = 200
+    conn = connexion_agent()
+    mouvements = conn.execute('SELECT * FROM MOUVEMENTS ORDER BY MOUVEMENT_ID DESC LIMIT ?', (limite,)).fetchall()
+    conn.close()
+    return render_template('page_mouvements.html', mouvements=mouvements, sources=SOURCES_MOUVEMENT, limite=limite)
 
 @app.route('/pilotage')
 @chef_requis
