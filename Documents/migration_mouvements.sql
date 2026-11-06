@@ -34,6 +34,21 @@ create table if not exists MOUVEMENTS (
 
 create index if not exists IX_MOUVEMENT_ARTICLE on MOUVEMENTS (ARTICLE_ID);
 
+-- Articles signales abimes, casses, hors service, avec un defaut de fabrication
+-- ou une piece manquante. L'article reste en stock : le signalement ne change pas l'inventaire.
+create table if not exists ANOMALIES (
+     ANOMALIE_ID integer primary key,
+     ARTICLE_ID integer not null references ARTICLES (ARTICLE_ID),
+     REF varchar(50) not null,
+     MOTIF varchar(20) not null
+          check (MOTIF in ('ABIME', 'CASSE', 'HORS_SERVICE', 'DEFAUT_FABRICATION', 'PIECE_MANQUANTE')),
+     COMMENTAIRE varchar(500),
+     STATUT varchar(10) not null default 'OUVERTE' check (STATUT in ('OUVERTE', 'TRAITEE')),
+     UTILISATEUR varchar(20),
+     DATE_SIGNALEMENT text not null default (datetime('now')));
+
+create index if not exists IX_ANOMALIE_ARTICLE on ANOMALIES (ARTICLE_ID, STATUT);
+
 -- Reprise du stock existant : un article et une entree pour chaque ligne d'inventaire.
 insert into ARTICLES (REF, ALLEE_ID, EMPLACEMENT_ID, DATE_ENTREE)
 select i.REF, i.ALLEE_ID, i.ID, i.Date
