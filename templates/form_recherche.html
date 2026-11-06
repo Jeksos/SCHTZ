@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plateforme SCHUTZ</title>
+    <title>Gestion de stock</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
   
@@ -85,14 +85,7 @@
         }
 
         /* Return to main page link styling */
-        .return-link {
-            margin-top: 20px;
-            display: inline-block;
-            color: #1a1a1a;
-            font-weight: bold;
-            text-decoration: none;
-            padding: 10px;
-        }
+        .return-link { display: block; margin: 20px auto; text-align: center; color: #1a1a1a; text-decoration: none; font-weight: bold; }
 
     </style>
 </head>
@@ -100,7 +93,10 @@
     <div class="container">
         <h1>Chercher une Référence</h1>
         <form action="/recherche" method="POST">
-        <input type="number" min="1000000" max="9999999" id="reference" name="reference" placeholder="Entrez la référence" required> 
+        <select id="reference" name="reference" required>
+            <option value="">Choisir une référence</option>
+            {% for ref in references %}<option value="{{ ref }}">{{ ref }}</option>{% endfor %}
+        </select>
             
             <button type="submit" name="recherche" value="valider">Valider</button>
 

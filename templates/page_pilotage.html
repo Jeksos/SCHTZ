@@ -9,7 +9,7 @@
         body { background-color: #8DA14B; font-family: Arial, sans-serif; color: #1a1a1a; margin: 0; padding: 16px; }
         main { max-width: 900px; margin: 0 auto; }
         h1 { color: #1a1a1a; text-align: center; margin: 8px 0 16px; }
-        .retour { color: #1a1a1a; font-weight: bold; }
+        .return-link { display: block; margin: 20px auto; text-align: center; color: #1a1a1a; text-decoration: none; font-weight: bold; }
         .avis { background: #FFEB3B; padding: 10px 14px; border-radius: 5px; margin: 12px 0; font-weight: bold; }
         section { background: #228B22; color: white; border-radius: 8px; padding: 16px; margin: 16px 0; }
         h2 { margin: 0 0 4px; font-size: 20px; color: white; }
@@ -20,7 +20,7 @@
         .infos strong { display: block; }
         .infos span { color: white; font-size: 14px; overflow-wrap: anywhere; }
         form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
-        input { padding: 8px; border: 1px solid #999; border-radius: 5px; font-size: 16px; max-width: 100%; }
+        input, select { padding: 8px; border: 1px solid #999; border-radius: 5px; font-size: 16px; max-width: 100%; }
         button { padding: 8px 14px; border: 2px solid #0F4D0F; border-radius: 5px; font-size: 15px; font-weight: bold; cursor: pointer; background: #228B22; color: white; }
         button.secondaire { background: #e9ecef; color: #1a1a1a; }
         button.danger { background: #c62828; color: white; }
@@ -29,7 +29,6 @@
 </head>
 <body>
 <main>
-    <a class="retour" href="/menu_accueil">Retour à l'accueil</a>
     <h1>Pilotage de l'agent</h1>
 
     {% for message in get_flashed_messages() %}
@@ -41,7 +40,10 @@
         <p class="aide">Pour n'importe quelle référence du catalogue. La décision affiche le bandeau sur l'accueil et prépare les messages clients.</p>
         <form action="{{ url_for('pilotage_arret') }}" method="POST">
             <label for="reference">Référence</label>
-            <input id="reference" name="reference" required>
+            <select id="reference" name="reference" required>
+                <option value="">Choisir une référence</option>
+                {% for ref in references %}<option value="{{ ref }}">{{ ref }}</option>{% endfor %}
+            </select>
             <label for="date_arret">Date d'arrêt</label>
             <input id="date_arret" type="date" name="date_arret" required>
             <button type="submit">Arrêter ce produit</button>
@@ -53,7 +55,10 @@
         <p class="aide">Tu connais ton stock : commande quand tu veux, sans attendre le seuil.</p>
         <form action="{{ url_for('pilotage_commander') }}" method="POST">
             <label for="commande_reference">Référence</label>
-            <input id="commande_reference" name="reference" required>
+            <select id="commande_reference" name="reference" required>
+                <option value="">Choisir une référence</option>
+                {% for ref in references %}<option value="{{ ref }}">{{ ref }}</option>{% endfor %}
+            </select>
             <label for="commande_lot">Lot</label>
             <input id="commande_lot" type="number" name="quantite" min="1" required>
             <button type="submit">Commander</button>
@@ -65,7 +70,10 @@
         <p class="aide">À {{ seuil }} % du stock plein ou moins, une commande se crée toute seule avec le lot habituel. Sans réglage, pas de commande automatique.</p>
         <form action="{{ url_for('pilotage_reglage') }}" method="POST">
             <label for="reglage_reference">Référence</label>
-            <input id="reglage_reference" name="reference" required>
+            <select id="reglage_reference" name="reference" required>
+                <option value="">Choisir une référence</option>
+                {% for ref in references %}<option value="{{ ref }}">{{ ref }}</option>{% endfor %}
+            </select>
             <label for="reglage_plein">Stock plein</label>
             <input id="reglage_plein" type="number" name="stock_plein" min="1" required>
             <label for="reglage_lot">Lot habituel</label>
@@ -108,7 +116,7 @@
 
     <section>
         <h2>Commandes à valider</h2>
-        <p class="aide">Ajuste le lot avant de valider. La validation n'envoie rien au fournisseur pour l'instant.</p>
+        <p class="aide">Ajuste le lot avant de valider. Une commande validée passe dans « Commandes en cours », d'où tu peux l'envoyer.</p>
         {% for commande in commandes %}
         <div class="ligne">
             <div class="infos">
@@ -130,16 +138,21 @@
 
     <section>
         <h2>Commandes en cours</h2>
-        <p class="aide">Rien n'est encore envoyé au fournisseur. Marque une commande comme reçue pour que le seuil puisse en créer une nouvelle.</p>
+        <p class="aide">Envoie la commande au fournisseur par mail, puis marque-la comme reçue pour que le seuil puisse en créer une nouvelle.</p>
         {% for commande in commandes_en_cours %}
         <div class="ligne">
             <div class="infos">
                 <strong>{{ commande['REF'] }} × {{ commande['QUANTITE'] }}</strong>
-                <span>{{ commande['FOURNISSEUR'] }}</span>
+                <span>{{ commande['FOURNISSEUR'] }}{% if commande['STATUT'] == 'ENVOYEE' %} · envoyée{% endif %}</span>
             </div>
             <div class="actions">
+                {% if commande['STATUT'] == 'VALIDEE' %}
+                <form action="{{ url_for('pilotage_envoyer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button type="submit">Envoyer</button></form>
+                {% endif %}
                 <form action="{{ url_for('pilotage_cloturer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button type="submit">Reçue</button></form>
+                {% if commande['STATUT'] == 'VALIDEE' %}
                 <form action="{{ url_for('pilotage_annuler_en_cours', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
+                {% endif %}
             </div>
         </div>
         {% else %}
@@ -181,6 +194,7 @@
         <p class="vide">Rien à supprimer.</p>
         {% endfor %}
     </section>
+    <a href="/menu_accueil" class="return-link">Retour à l'accueil</a>
 </main>
 </body>
 </html>

@@ -7,7 +7,9 @@ from datetime import date as date_iso, datetime, timezone
 import os
 import re
 import shutil
+import smtplib
 import sqlite3
+from email.message import EmailMessage
 from functools import wraps
 
 # Sans fuseau disponible sur le serveur, le journal s'affiche en heure UTC plutôt que de bloquer le site
@@ -284,6 +286,10 @@ def ViderEmplacement():
     
     return render_template('form_vider.html', message = "L'emplacement %s-%s est libéré." % (allee_id, id) + texte_commandes_creees(commandes_creees))
 
+# Références proposées dans les listes déroulantes
+def references_catalogue(conn):
+    return [ligne[0] for ligne in conn.execute('SELECT REF FROM CATALOGUE ORDER BY REF')]
+
 # ----- Saisie par scan -----
 # La page marche avec la caméra du téléphone, ou à la main si la caméra n'est pas disponible.
 
@@ -388,8 +394,9 @@ def afficher_signalements():
         'SELECT s.REF, s.MOTIF, s.COMMENTAIRE, s.UTILISATEUR, s.DATE_SIGNALEMENT, a.ALLEE_ID, a.EMPLACEMENT_ID '
         'FROM SIGNALEMENTS s LEFT JOIN ARTICLES a ON a.ARTICLE_ID = s.ARTICLE_ID '
         'ORDER BY s.SIGNALEMENT_ID DESC LIMIT 50').fetchall()
+    references = references_catalogue(conn)
     conn.close()
-    return render_template('page_signalements.html', signalements=signalements, motifs=MOTIFS_SIGNALEMENT)
+    return render_template('page_signalements.html', signalements=signalements, motifs=MOTIFS_SIGNALEMENT, references=references)
 
 # Retrouve la ligne de stock à retirer. Renvoie (ligne, erreur).
 def trouver_ligne_a_retirer(cursor, ref, motif, allee_id, emplacement_id):
@@ -462,17 +469,21 @@ def recherche():
         # Recherche dans la base de données
         cursor.execute('SELECT REF, Date, ALLEE_ID, ID FROM inventaire WHERE REF = ?', (ref,))
         data = cursor.fetchall()
+        references = references_catalogue(conn)
         
         conn.close()
         
         # Si aucun résultat, envoyer un message d'erreur
         if not data:
-            return render_template('form_recherche.html', data=None, message="Aucun résultat trouvé pour cette référence.")
+            return render_template('form_recherche.html', data=None, message="Aucun résultat trouvé pour cette référence.", references=references)
         
         # Si des résultats sont trouvés, les afficher
-        return render_template('form_recherche.html', data=data)
+        return render_template('form_recherche.html', data=data, references=references)
     
-    return render_template('form_recherche.html')
+    conn = sqlite3.connect('schutz.db')
+    references = references_catalogue(conn)
+    conn.close()
+    return render_template('form_recherche.html', references=references)
     
 
 @app.route('/logout')
@@ -626,9 +637,9 @@ def pilotage():
             "JOIN FOURNISSEURS f ON f.FOURNISSEUR_ID = o.FOURNISSEUR_ID "
             "WHERE o.STATUT = 'A_VALIDER' ORDER BY o.DATE_CREATION").fetchall(),
         'commandes_en_cours': conn.execute(
-            "SELECT o.COMMANDE_ID, o.REF, o.QUANTITE, f.NOM AS FOURNISSEUR FROM COMMANDES o "
+            "SELECT o.COMMANDE_ID, o.REF, o.QUANTITE, o.STATUT, f.NOM AS FOURNISSEUR FROM COMMANDES o "
             "JOIN FOURNISSEURS f ON f.FOURNISSEUR_ID = o.FOURNISSEUR_ID "
-            "WHERE o.STATUT = 'VALIDEE' ORDER BY o.DATE_CREATION").fetchall(),
+            "WHERE o.STATUT IN ('VALIDEE', 'ENVOYEE') ORDER BY o.DATE_CREATION").fetchall(),
         'reglages': conn.execute(
             "SELECT r.REF, r.STOCK_PLEIN, c.QTE_COMMANDE, "
             "(SELECT count(*) FROM INVENTAIRE i WHERE i.REF = r.REF) AS EN_STOCK "
@@ -639,6 +650,7 @@ def pilotage():
             "JOIN CLIENTS c ON c.CLIENT_ID = m.CLIENT_ID "
             "LEFT JOIN CATALOGUE ca ON ca.REF = m.REF "
             "WHERE m.STATUT = 'A_VALIDER' ORDER BY m.DATE_CREATION").fetchall(),
+        'references': references_catalogue(conn),
     }
     conn.close()
     return render_template('page_pilotage.html', **donnees)
@@ -746,10 +758,64 @@ def pilotage_annuler_en_cours(commande_id):
 def pilotage_cloturer(commande_id):
     conn = connexion_agent()
     modifie = conn.execute("UPDATE COMMANDES SET STATUT = 'CLOTUREE', DATE_RECEPTION = datetime('now') "
-                           "WHERE COMMANDE_ID = ? AND STATUT = 'VALIDEE'", (commande_id,)).rowcount
+                           "WHERE COMMANDE_ID = ? AND STATUT IN ('VALIDEE', 'ENVOYEE')", (commande_id,)).rowcount
     conn.commit()
     conn.close()
     flash('Commande marquée comme reçue.' if modifie else "Cette commande n'est plus en cours.")
+    return redirect(url_for('pilotage'))
+
+# Sans ENVOI_REEL_FOURNISSEURS=1, les commandes partent sur l'adresse de test et jamais chez le fournisseur.
+def destinataire_commande(email_fournisseur):
+    if os.environ.get('ENVOI_REEL_FOURNISSEURS') == '1':
+        return email_fournisseur
+    return os.environ.get('EMAIL_TEST_COMMANDES')
+
+def envoyer_mail_commande(destinataire, fournisseur, commande_id, ref, quantite):
+    utilisateur = os.environ['SMTP_USER']
+    message = EmailMessage()
+    message['Subject'] = f'Commande n° {commande_id} - référence {ref}'
+    message['From'] = utilisateur
+    message['To'] = destinataire
+    message.set_content(f"Bonjour,\n\nMerci de préparer la commande suivante pour {fournisseur} :\n\n"
+                        f"Commande n° {commande_id}\nRéférence : {ref}\nQuantité : {quantite}\n\nCordialement,\nGestion de stock\n")
+    with smtplib.SMTP(os.environ.get('SMTP_HOST', 'smtp.gmail.com'), int(os.environ.get('SMTP_PORT', '587')), timeout=15) as serveur:
+        serveur.starttls()
+        serveur.login(utilisateur, os.environ['SMTP_PASSWORD'])
+        serveur.send_message(message)
+
+# Seul le chef envoie, et une seule fois : la commande est réservée avant l'envoi, puis rendue si l'envoi échoue
+@app.route('/pilotage/commandes/<int:commande_id>/envoyer', methods=['POST'])
+@chef_requis
+def pilotage_envoyer(commande_id):
+    conn = connexion_agent()
+    try:
+        commande = conn.execute("SELECT o.REF, o.QUANTITE, f.NOM, f.EMAIL FROM COMMANDES o "
+                                "JOIN FOURNISSEURS f ON f.FOURNISSEUR_ID = o.FOURNISSEUR_ID "
+                                "WHERE o.COMMANDE_ID = ? AND o.STATUT = 'VALIDEE'", (commande_id,)).fetchone()
+        if commande is None:
+            flash("Cette commande n'est plus à envoyer.")
+            return redirect(url_for('pilotage'))
+        destinataire = destinataire_commande(commande['EMAIL'])
+        if not (destinataire and os.environ.get('SMTP_USER') and os.environ.get('SMTP_PASSWORD')):
+            flash("L'envoi des mails n'est pas configuré sur le serveur : commande non envoyée.")
+            return redirect(url_for('pilotage'))
+        reservee = conn.execute("UPDATE COMMANDES SET STATUT = 'ENVOYEE', DATE_ENVOI = datetime('now') "
+                                "WHERE COMMANDE_ID = ? AND STATUT = 'VALIDEE'", (commande_id,)).rowcount
+        conn.commit()
+        if not reservee:
+            flash("Cette commande n'est plus à envoyer.")
+            return redirect(url_for('pilotage'))
+        try:
+            envoyer_mail_commande(destinataire, commande['NOM'], commande_id, commande['REF'], commande['QUANTITE'])
+        except (OSError, ValueError):
+            app.logger.exception("Envoi du mail de la commande %s impossible", commande_id)
+            conn.execute("UPDATE COMMANDES SET STATUT = 'VALIDEE', DATE_ENVOI = NULL WHERE COMMANDE_ID = ?", (commande_id,))
+            conn.commit()
+            flash(f"Le mail de la commande {commande['REF']} n'a pas pu partir : réessaie plus tard.")
+            return redirect(url_for('pilotage'))
+        flash(f"Commande {commande['REF']} envoyée à {destinataire}.")
+    finally:
+        conn.close()
     return redirect(url_for('pilotage'))
 
 def changer_statut(table, colonne, identifiant, statut):

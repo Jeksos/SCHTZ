@@ -27,20 +27,12 @@
             padding: 10px;
             text-align: left;
         }
-        .return-link {
-            display: inline-block;
-            margin-bottom: 20px; /* Ajoute de l'espace en dessous du lien */
-            color: #1a1a1a; 
-            text-decoration: none;
-        }
+        .return-link { display: block; margin: 20px auto; text-align: center; color: #1a1a1a; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
     <h1>Inventaire</h1>
 
-    <!-- Return link -->
-    <a href="/menu_accueil" class="return-link">Retour à l'accueil</a>
-    
     <table border="1">
         <thead>
             <tr>
@@ -61,5 +53,7 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <a href="/menu_accueil" class="return-link">Retour à l'accueil</a>
 </body>
 </html>
