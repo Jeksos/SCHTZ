@@ -1,0 +1,32 @@
+-- Fournisseurs réels (listes du 06/11/2026), à vérifier avant tout envoi réel.
+-- Tant que ENVOI_REEL_FOURNISSEURS n'est pas à 1, aucune commande ne leur est envoyée.
+-- Un fournisseur déjà présent (même nom) n'est pas ajouté une deuxième fois.
+insert or ignore into FOURNISSEURS (NOM, EMAIL) values
+  ('Europ Computer Performance (ECP)', 'sales@europ-computer.com'),
+  ('IT STOCK', 'sales@itstock.fr'),
+  ('ASINFO', 'sales@asinfo.com'),
+  ('ACI 21', 'mail.m21@free.fr'),
+  ('LDLC PRO', 'entreprise@ldlc.pro'),
+  ('DELITECH Paris', 'contact@delitechparis.fr'),
+  ('Ingram Micro France', 'ouverture@ingrammicro.fr'),
+  ('ALSO France', 'inscription-fr@also.com'),
+  ('DSI France', 'contact@dsi-france.fr'),
+  ('UFP International', 'contact@ufp-international.fr'),
+  ('Acadia Informatique', 'sav@acadia-info.com'),
+  ('MC2IT', 'commerciales@mc2it.com'),
+  ('KW Distribution', 'vente@kw-distribution.com'),
+  ('IMTECH Solutions', 'contact@imtech-solutions.com'),
+  ('PCW Informatique', 'contact@pcw.fr'),
+  ('ACTN', 'eperez@actn.fr'),
+  ('Westcoast France', 'contact@westcoastfrance.fr'),
+  ('Cybertek', 'contact@cybertek.fr'),
+  ('AfB France', 'service-b2b@afb-group.eu'),
+  ('Watsoft', 'revendeurs@watsoft.com'),
+  ('ALLNET France', 'info@allnetfrance.fr'),
+  ('Westcon France', 'service.commercial@westconsecurity.fr'),
+  ('Integral System', 'commercial@integral-system.fr'),
+  ('ASUS France', 'acf_op_commercial@asus.com'),
+  ('Green Cable Network', 'info@greencable.fr'),
+  ('Mobitic''s', 'info@mobitics.fr'),
+  ('VIT''S', 'info@vit-s.com'),
+  ('Pepro', 'contact@pepro.fr');
