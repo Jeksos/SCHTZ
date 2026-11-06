@@ -287,6 +287,16 @@ def ViderEmplacement():
 # ----- Saisie par scan -----
 # La page marche avec la caméra du téléphone, ou à la main si la caméra n'est pas disponible.
 
+# Retrouve l'allée d'un emplacement saisi sans sa lettre. Renvoie (emplacement, erreur).
+def completer_emplacement(cursor, numero):
+    allees = cursor.execute('SELECT ALLEE_ID FROM EMPLACEMENTS WHERE ID = ? UNION SELECT ALLEE_ID FROM INVENTAIRE WHERE ID = ?',
+                            (numero, numero)).fetchall()
+    if not allees:
+        return None, f"L'emplacement {numero} est inconnu : indique aussi l'allée (exemple : A-{numero})."
+    if len(allees) > 1:
+        return None, f"L'emplacement {numero} existe dans plusieurs allées : indique aussi la lettre."
+    return f'{allees[0][0]}-{numero}', None
+
 @app.route('/scan', methods=['GET', 'POST'])
 @connexion_requise
 def scan():
@@ -301,14 +311,19 @@ def scan():
     if not re.fullmatch(r'[1-9][0-9]{6}', ref):
         flash(f"« {ref} » n'est pas une référence valide (7 chiffres).")
         return redirect(url_for('scan'))
-    if emplacement and not re.fullmatch(r'[A-Z]-[0-9]{1,4}', emplacement):
-        flash(f"« {emplacement} » n'est pas un emplacement valide (exemple : A-100).")
+    if emplacement and not re.fullmatch(r'([A-Z]-)?[0-9]{1,4}', emplacement):
+        flash(f"« {emplacement} » n'est pas un emplacement valide (exemple : A-100 ou 100).")
         return redirect(url_for('scan'))
-    allee_id, emplacement_id = emplacement.split('-') if emplacement else ('', '')
 
     conn = sqlite3.connect('schutz.db')
     try:
         cursor = conn.cursor()
+        if emplacement.isdigit():
+            emplacement, erreur = completer_emplacement(cursor, emplacement)
+            if erreur:
+                flash(erreur)
+                return redirect(url_for('scan'))
+        allee_id, emplacement_id = emplacement.split('-') if emplacement else ('', '')
         if action == 'ENTREE':
             if not emplacement:
                 flash("Indique l'emplacement où ranger l'article.")

@@ -49,7 +49,7 @@
                 <input type="text" id="reference" name="reference" inputmode="numeric" required>
             </div>
             <div class="champ">
-                <label for="emplacement">Emplacement (exemple : A-100)</label>
+                <label for="emplacement">Emplacement (exemple : A-100 ou 100)</label>
                 <input type="text" id="emplacement" name="emplacement">
             </div>
             <button type="submit">Valider</button>
@@ -77,10 +77,10 @@
         return actif.stop().catch(function () {}).then(function () { actif.clear(); zone.classList.remove('actif'); });
     }
 
-    // Un code comme A-100 est un emplacement, tout le reste une référence
+    // Un code comme A-100 ou 100 est un emplacement, tout le reste une référence
     function codeLu(code) {
         var texte = code.trim().toUpperCase();
-        var estEmplacement = /^[A-Z]-[0-9]{1,4}$/.test(texte);
+        var estEmplacement = /^([A-Z]-)?[0-9]{1,4}$/.test(texte);
         (estEmplacement ? emplacement : reference).value = texte;
         source.value = 'SMARTPHONE';
         arreterCamera();
