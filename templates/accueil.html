@@ -62,13 +62,6 @@
     </style>
   </head>
   <body>
-    {% if produits_arretes %}
-    <div role="status" style="box-sizing: border-box; width: 100%; background-color: #228B22; color: white; border-bottom: 2px solid #0F4D0F; padding: 10px 16px; text-align: center; font-weight: bold;">
-        {% for produit in produits_arretes %}
-        <div>Nous arrêtons la référence {{ produit[0] }} le {{ produit[1]|date_fr }}.</div>
-        {% endfor %}
-    </div>
-    {% endif %}
     <h1>Bienvenue sur Gestion de stock</h1>
     <p>Bienvenue <a href={{ url_for('authentification') }}>identifiez vous</a></p>
   </body>

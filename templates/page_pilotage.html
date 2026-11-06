@@ -52,7 +52,7 @@
 
     <section>
         <h2>Décider un arrêt</h2>
-        <p class="aide">Pour n'importe quelle référence du catalogue. La décision affiche le bandeau sur l'accueil et prépare les messages clients.</p>
+        <p class="aide">Pour n'importe quelle référence du catalogue. La décision prépare les messages clients.</p>
         <form action="{{ url_for('pilotage_arret') }}" method="POST">
             <label for="reference">Référence</label>
             <select id="reference" name="reference" required>
@@ -110,7 +110,7 @@
 
     <section>
         <h2>À liquider</h2>
-        <p class="aide">En stock depuis plus de 3 mois, pas rentables ou déjà arrêtés.</p>
+        <p class="aide">En stock depuis plus de 3 mois, pas rentables ou déjà arrêtés : pour offre promotionnelle ou solde.</p>
         {% for article in a_liquider %}
         <div class="ligne">
             <div class="infos">

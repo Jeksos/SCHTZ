@@ -88,7 +88,7 @@ appliquer_migration_mouvements()
 
 @app.route('/')
 def acceuil():
-    return render_template('accueil.html', produits_arretes=lire_produits_arretes())
+    return render_template('accueil.html')
 
 # Affiche une date AAAA-MM-JJ au format JJ/MM/AAAA
 @app.template_filter('date_fr')
@@ -110,16 +110,6 @@ def date_heure_fr(valeur):
     if FUSEAU_PARIS is None:
         return moment.strftime('%d/%m/%Y %H:%M UTC')
     return moment.astimezone(FUSEAU_PARIS).strftime('%d/%m/%Y %H:%M')
-
-# Références dont l'arrêt est annoncé. Liste vide si la migration n'a pas encore été lancée.
-def lire_produits_arretes():
-    conn = sqlite3.connect('schutz.db')
-    try:
-        return conn.execute('SELECT REF, DATE_ARRET FROM V_PRODUITS_ARRETES ORDER BY DATE_ARRET, REF').fetchall()
-    except sqlite3.OperationalError:
-        return []
-    finally:
-        conn.close()
 
 # Fonction pour créer une clé "authentifie" dans la session utilisateur
 def est_authentifie():
