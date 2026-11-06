@@ -9,52 +9,37 @@
       /* General page styling */
       * { box-sizing: border-box; }
       body {
-        background-color: #8DA14B;
+        /* Fond d'écran : l'image du logo, centrée, sur un fond de la même couleur */
+        background: #00081c url("{{ url_for('static', filename='fond-accueil.jpg') }}") center / contain no-repeat;
         font-family: Arial, sans-serif;
-        color: #1a1a1a;
+        color: #ffffff;
         margin: 0;
-        padding: 0;
+        padding: 0 16px 8vh;
         display: flex;
-        justify-content: flex-start; /* Changed from center */
+        justify-content: flex-end;
         align-items: center;
         min-height: 100vh;
         flex-direction: column;
         text-align: center;
-
-        font-size:20px;
+        font-size: 20px;
       }
 
-      p{
-         font-size: 30px;
+      p {
+        font-size: 30px;
       }
 
-      /* Circular title styling */
+      /* Le titre reste lisible par les lecteurs d'écran, mais n'est plus affiché : le logo le montre déjà */
       h1 {
-        display: inline-block;
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: linear-gradient(270deg, red, yellow, blue); /* Simplified to three colors */
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 18px;
-        font-weight: bold;
-        animation: rotate 55s linear infinite;
-        margin-bottom: 20px;
-       <!-- align-self: flex-start; /* Aligns the circle to the left */ -->
-        margin-left: 20px; /* Optional: Adds some space from the left */
-      }
-
-      @keyframes rotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
       }
 
       /* Link styling */
       a {
-        color: #1a1a1a;
+        color: #2ee6a6;
         font-weight: bold;
         text-decoration: none;
       }
