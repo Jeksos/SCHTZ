@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 import hmac
 from datetime import date as date_iso, datetime, timezone
 import os
+import re
 import shutil
 import sqlite3
 from functools import wraps
@@ -282,6 +283,74 @@ def ViderEmplacement():
     conn.close()
     
     return render_template('form_vider.html', message = "L'emplacement %s-%s est libéré." % (allee_id, id) + texte_commandes_creees(commandes_creees))
+
+# ----- Saisie par scan -----
+# La page marche avec la caméra du téléphone, ou à la main si la caméra n'est pas disponible.
+
+@app.route('/scan', methods=['GET', 'POST'])
+@connexion_requise
+def scan():
+    if request.method == 'GET':
+        return render_template('page_scan.html')
+
+    action = request.form.get('action')
+    ref = request.form.get('reference', '').strip()
+    emplacement = request.form.get('emplacement', '').strip().upper()
+    source = 'SMARTPHONE' if request.form.get('source') == 'SMARTPHONE' else 'MANUEL'
+    # Un code-barres de fabricant ne doit pas créer une référence au catalogue
+    if not re.fullmatch(r'[1-9][0-9]{6}', ref):
+        flash(f"« {ref} » n'est pas une référence valide (7 chiffres).")
+        return redirect(url_for('scan'))
+    if emplacement and not re.fullmatch(r'[A-Z]-[0-9]{1,4}', emplacement):
+        flash(f"« {emplacement} » n'est pas un emplacement valide (exemple : A-100).")
+        return redirect(url_for('scan'))
+    allee_id, emplacement_id = emplacement.split('-') if emplacement else ('', '')
+
+    conn = sqlite3.connect('schutz.db')
+    try:
+        cursor = conn.cursor()
+        if action == 'ENTREE':
+            if not emplacement:
+                flash("Indique l'emplacement où ranger l'article.")
+                return redirect(url_for('scan'))
+            date_entree = date_iso.today().isoformat()
+            try:
+                cursor.execute('INSERT INTO inventaire (REF, Date, ALLEE_ID, ID) VALUES (?, ?, ?, ?)',
+                               (ref, date_entree, allee_id, emplacement_id))
+            except sqlite3.IntegrityError:
+                flash(f"L'emplacement {emplacement} est déjà occupé.")
+                return redirect(url_for('scan'))
+            enregistrer_entree(cursor, ref, allee_id, emplacement_id, date_entree, source)
+            conn.commit()
+            flash(f"Référence {ref} rangée en {emplacement}.")
+        elif action == 'SORTIE':
+            ligne, erreur = trouver_ligne_a_retirer(cursor, ref, 'SORTIE', allee_id, emplacement_id)
+            if erreur:
+                flash(erreur)
+                return redirect(url_for('scan'))
+            date_entree, allee_id, emplacement_id = ligne
+            cursor.execute('DELETE FROM inventaire WHERE ALLEE_ID = ? AND ID = ?', (allee_id, emplacement_id))
+            enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, source)
+            commandes_creees = creer_commandes_automatiques(cursor)
+            conn.commit()
+            flash(f"Référence {ref} sortie de {allee_id}-{emplacement_id}." + texte_commandes_creees(commandes_creees))
+        else:
+            flash('Choisis entrée ou sortie.')
+    finally:
+        conn.close()
+    return redirect(url_for('scan'))
+
+# Étiquettes QR à imprimer pour les emplacements et les références
+@app.route('/etiquettes')
+@connexion_requise
+def etiquettes():
+    conn = sqlite3.connect('schutz.db')
+    emplacements = conn.execute("SELECT ALLEE_ID || '-' || ID FROM EMPLACEMENTS "
+                                "UNION SELECT ALLEE_ID || '-' || ID FROM INVENTAIRE ORDER BY 1").fetchall()
+    references = conn.execute('SELECT REF FROM CATALOGUE ORDER BY REF').fetchall()
+    conn.close()
+    return render_template('page_etiquettes.html', emplacements=[e[0] for e in emplacements], references=[r[0] for r in references])
+
 
 # ----- Produits à problème -----
 # Un produit signalé sort du stock : il n'est plus disponible et l'agent peut en recommander.

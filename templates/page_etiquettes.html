@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étiquettes QR</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: #8DA14B; font-family: Arial, sans-serif; color: #1a1a1a; margin: 0; padding: 16px; }
+        main { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; margin: 8px 0 16px; }
+        .retour { color: #1a1a1a; font-weight: bold; }
+        section { background: #228B22; color: white; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        h2 { margin: 0 0 12px; font-size: 20px; }
+        button { padding: 10px 14px; border: 2px solid #0F4D0F; border-radius: 5px; font-size: 15px; font-weight: bold; cursor: pointer; background: #228B22; color: white; }
+        .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        /* Le fond reste blanc : un QR code sur fond coloré se scanne mal */
+        .etiquette { background: white; color: black; border: 1px solid #999; border-radius: 4px; padding: 6px; text-align: center; font-weight: bold; break-inside: avoid; }
+        .etiquette svg { display: block; width: 100%; height: auto; }
+        @media print {
+            body { background: white; padding: 0; }
+            .retour, button { display: none; }
+            section { background: white; color: black; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <a class="retour" href="/menu_accueil">Retour à l'accueil</a>
+    <h1>Étiquettes QR</h1>
+    <button type="button" onclick="window.print()">Imprimer</button>
+
+    <section>
+        <h2>Emplacements</h2>
+        <div class="grille">
+            {% for code in emplacements %}<div class="etiquette" data-code="{{ code }}">{{ code }}</div>{% endfor %}
+        </div>
+    </section>
+
+    <section>
+        <h2>Références</h2>
+        <div class="grille">
+            {% for code in references %}<div class="etiquette" data-code="{{ code }}">{{ code }}</div>{% endfor %}
+        </div>
+    </section>
+</main>
+
+<script src="{{ url_for('static', filename='qrcode.js') }}"></script>
+<script>
+    document.querySelectorAll('.etiquette').forEach(function (etiquette) {
+        var qr = qrcode(0, 'M');
+        qr.addData(etiquette.dataset.code);
+        qr.make();
+        etiquette.insertAdjacentHTML('afterbegin', qr.createSvgTag(4, 8));
+    });
+</script>
+</body>
+</html>

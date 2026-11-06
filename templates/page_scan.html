@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner un article</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: #8DA14B; font-family: Arial, sans-serif; color: #1a1a1a; margin: 0; padding: 16px; }
+        main { max-width: 520px; margin: 0 auto; }
+        h1 { color: #1a1a1a; text-align: center; margin: 8px 0 16px; }
+        .retour { color: #1a1a1a; font-weight: bold; }
+        .avis { background: #FFEB3B; padding: 10px 14px; border-radius: 5px; margin: 12px 0; font-weight: bold; }
+        section { background: #228B22; color: white; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        .aide { margin: 0 0 12px; font-size: 14px; min-height: 1em; }
+        .choix { display: flex; gap: 16px; margin-bottom: 12px; font-weight: bold; }
+        .choix label { display: flex; align-items: center; gap: 8px; }
+        .champ { margin-bottom: 12px; }
+        .champ label { display: block; font-weight: bold; margin-bottom: 4px; }
+        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #999; border-radius: 5px; font-size: 18px; }
+        input[type="radio"] { width: 20px; height: 20px; }
+        button { width: 100%; padding: 14px; border: 2px solid #0F4D0F; border-radius: 5px; font-size: 17px; font-weight: bold; cursor: pointer; background: #228B22; color: white; margin-bottom: 12px; }
+        #lecteur { display: none; background: #000; border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
+        #lecteur.actif { display: block; }
+    </style>
+</head>
+<body>
+<main>
+    <a class="retour" href="/menu_accueil">Retour à l'accueil</a>
+    <h1>Scanner un article</h1>
+
+    {% for message in get_flashed_messages() %}
+    <div class="avis" role="status">{{ message }}</div>
+    {% endfor %}
+
+    <section>
+        <div id="lecteur"></div>
+        <button type="button" id="bouton_camera">Scanner avec la caméra</button>
+        <p class="aide" id="etat_camera" role="status">Scanne l'article puis l'emplacement, ou écris-les à la main.</p>
+
+        <form action="{{ url_for('scan') }}" method="POST" autocomplete="off">
+            <input type="hidden" name="source" id="source" value="MANUEL">
+            <div class="choix">
+                <label><input type="radio" name="action" value="ENTREE" checked> Entrée</label>
+                <label><input type="radio" name="action" value="SORTIE"> Sortie</label>
+            </div>
+            <div class="champ">
+                <label for="reference">Référence</label>
+                <input type="text" id="reference" name="reference" inputmode="numeric" required>
+            </div>
+            <div class="champ">
+                <label for="emplacement">Emplacement (exemple : A-100)</label>
+                <input type="text" id="emplacement" name="emplacement">
+            </div>
+            <button type="submit">Valider</button>
+        </form>
+    </section>
+</main>
+
+<script src="{{ url_for('static', filename='html5-qrcode.min.js') }}"></script>
+<script>
+    var bouton = document.getElementById('bouton_camera');
+    var etat = document.getElementById('etat_camera');
+    var reference = document.getElementById('reference');
+    var emplacement = document.getElementById('emplacement');
+    var source = document.getElementById('source');
+    var zone = document.getElementById('lecteur');
+    var lecteur = null;
+    var enCours = false;
+
+    function arreterCamera() {
+        enCours = false;
+        bouton.textContent = 'Scanner avec la caméra';
+        if (!lecteur) { return Promise.resolve(); }
+        var actif = lecteur;
+        lecteur = null;
+        return actif.stop().catch(function () {}).then(function () { actif.clear(); zone.classList.remove('actif'); });
+    }
+
+    // Un code comme A-100 est un emplacement, tout le reste une référence
+    function codeLu(code) {
+        var texte = code.trim().toUpperCase();
+        var estEmplacement = /^[A-Z]-[0-9]{1,4}$/.test(texte);
+        (estEmplacement ? emplacement : reference).value = texte;
+        source.value = 'SMARTPHONE';
+        arreterCamera();
+        var manque = !reference.value ? "Scanne maintenant l'article." : (!emplacement.value ? "Scanne maintenant l'emplacement." : 'Vérifie puis valide.');
+        etat.textContent = (estEmplacement ? 'Emplacement lu : ' : 'Référence lue : ') + texte + '. ' + manque;
+    }
+
+    function demarrerCamera() {
+        if (typeof Html5Qrcode === 'undefined') {
+            etat.textContent = 'Lecteur indisponible : écris le code à la main.';
+            return;
+        }
+        enCours = true;
+        bouton.textContent = 'Arrêter la caméra';
+        etat.textContent = 'Vise le code avec la caméra.';
+        // La zone doit être visible avant le démarrage : le lecteur a besoin de sa largeur
+        zone.classList.add('actif');
+        lecteur = new Html5Qrcode('lecteur');
+        lecteur.start({ facingMode: 'environment' }, { fps: 10, qrbox: function (largeur, hauteur) { var cote = Math.max(120, Math.floor(Math.min(largeur, hauteur) * 0.8)); return { width: cote, height: cote }; } }, codeLu, function () {})
+            .catch(function () {
+                lecteur = null;
+                enCours = false;
+                bouton.textContent = 'Scanner avec la caméra';
+                zone.innerHTML = '';
+                zone.classList.remove('actif');
+                etat.textContent = "Caméra indisponible ou refusée : écris le code à la main.";
+            });
+    }
+
+    bouton.addEventListener('click', function () {
+        if (enCours) { arreterCamera(); etat.textContent = 'Caméra arrêtée.'; } else { demarrerCamera(); }
+    });
+
+    // Un code corrigé à la main n'est plus un code scanné
+    [reference, emplacement].forEach(function (champ) {
+        champ.addEventListener('input', function () { source.value = 'MANUEL'; });
+    });
+</script>
+</body>
+</html>

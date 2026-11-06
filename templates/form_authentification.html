@@ -9,14 +9,15 @@
     <script defer src="script.js"></script>  
     <style>
         /* Général pour la page */
+        * { box-sizing: border-box; }
         body {
             background-color: #8DA14B;
             margin: 0;
-            padding: 0;
+            padding: 16px;
             display: flex;
             justify-content: center; /* Centrage horizontal */
             align-items: center; /* Centrage vertical */
-            height: 100vh; /* Hauteur de la fenêtre pour centrer */
+            min-height: 100vh; /* Hauteur de la fenêtre pour centrer */
             font-family: Arial, sans-serif;
         }
 
@@ -24,10 +25,11 @@
         .form-container {
             background-color: #228B22;
             color: white;
-            padding: 50px; /* Espace à l'intérieur du container */
+            padding: 24px; /* Espace à l'intérieur du container */
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
-            width: 400px; /* Largeur définie */
+            width: 100%;
+            max-width: 400px;
             height: auto; /* Ajustement de la hauteur selon le contenu */
             text-align: center; /* Centrage du texte */
         }
