@@ -36,8 +36,8 @@
     {% endfor %}
 
     <section>
-        <h2>Alertes de seuil</h2>
-        <p class="aide">Références à {{ seuil }} % du stock plein ou moins.</p>
+        <h2><svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true" style="vertical-align: -3px; margin-right: 6px;"><path d="M11 1.5 L21 18.5 H1 Z" fill="#D50000" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 7.5 V12.5 M11 15 V15.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>Alertes de seuil</h2>
+        <p class="aide">À {{ seuil }} % du stock plein ou moins : commande automatique.</p>
         {% for alerte in alertes %}
         <div class="ligne">
             <div class="infos">
