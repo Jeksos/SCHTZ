@@ -71,7 +71,12 @@ insert or ignore into PARAMETRES_COMMANDE (PARAMETRE_ID, SEUIL_POURCENT) values 
 -- Sans stock plein : l'ancienne regle du stock minimum, utilisee par l'agent.
 drop view if exists V_A_COMMANDER;
 create view V_A_COMMANDER as
-select c.REF, c.FOURNISSEUR_ID, f.NOM as FOURNISSEUR, f.EMAIL, c.QTE_COMMANDE,
+select c.REF, c.FOURNISSEUR_ID, f.NOM as FOURNISSEUR, f.EMAIL,
+       -- Avec un stock plein, on commande ce qui manque pour y revenir
+       case when r.STOCK_PLEIN is not null
+            then r.STOCK_PLEIN - (select count(*) from INVENTAIRE i where i.REF = c.REF)
+            else c.QTE_COMMANDE
+       end as QTE_COMMANDE,
        (select count(*) from INVENTAIRE i where i.REF = c.REF) as EN_STOCK,
        r.STOCK_PLEIN
 from CATALOGUE c
@@ -81,11 +86,39 @@ where c.REF in (select REF from V_REFERENCES_VALABLES)
   and case when r.STOCK_PLEIN is not null
            then (select count(*) from INVENTAIRE i where i.REF = c.REF) * 100
                 <= r.STOCK_PLEIN * (select SEUIL_POURCENT from PARAMETRES_COMMANDE)
+                and (select count(*) from INVENTAIRE i where i.REF = c.REF) < r.STOCK_PLEIN
            else (select count(*) from INVENTAIRE i where i.REF = c.REF) < c.STOCK_MIN
       end
   and not exists (select 1 from COMMANDES o
                   where o.REF = c.REF
                     and o.STATUT in ('A_VALIDER', 'VALIDEE', 'ENVOYEE', 'RECUE'));
+
+-- Articles a liquider, avec la raison : le motif decide par le chef, ou la raison que l'application connait.
+drop view if exists V_A_LIQUIDER;
+create view V_A_LIQUIDER as
+select i.REF, i.Date, i.ALLEE_ID, i.ID, c.RENTABLE, c.DATE_ARRET, c.MOTIF_ARRET,
+       case when c.DATE_ARRET is not null then coalesce(c.MOTIF_ARRET, 'Non renseigné')
+            when c.RENTABLE = 0 then 'Pas rentable'
+            else 'Trop ancien'
+       end as RAISON
+from INVENTAIRE i
+join CATALOGUE c on c.REF = i.REF
+where c.REF not in (select REF from V_REFERENCES_VALABLES);
+
+-- Stock et quantite attendue des references reglees. Une commande recue n'attend plus
+-- que les articles pas encore ranges depuis sa reception.
+drop view if exists V_STOCK_REGLE;
+create view V_STOCK_REGLE as
+select r.REF, r.STOCK_PLEIN,
+       (select count(*) from INVENTAIRE i where i.REF = r.REF) as EN_STOCK,
+       coalesce((select sum(case when o.STATUT = 'RECUE'
+                                 then max(o.QUANTITE - (select count(*) from MOUVEMENTS m
+                                                        where m.REF = o.REF and m.TYPE = 'ENTREE'
+                                                          and m.DATE_EVENEMENT > o.DATE_RECEPTION), 0)
+                                 else o.QUANTITE end)
+                 from COMMANDES o
+                 where o.REF = r.REF and o.STATUT in ('A_VALIDER', 'VALIDEE', 'ENVOYEE', 'RECUE')), 0) as EN_COMMANDE
+from REGLAGES_STOCK r;
 
 -- Reprise du stock existant : un article et une entree pour chaque ligne d'inventaire.
 insert into ARTICLES (REF, ALLEE_ID, EMPLACEMENT_ID, DATE_ENTREE)

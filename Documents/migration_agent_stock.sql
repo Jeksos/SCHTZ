@@ -18,7 +18,8 @@ create table if not exists CATALOGUE (
      QTE_COMMANDE integer not null default 1 check (QTE_COMMANDE > 0),
      RENTABLE integer not null default 1 check (RENTABLE in (0, 1)),
      DATE_ENTREE date,
-     DATE_ARRET date);
+     DATE_ARRET date,
+     MOTIF_ARRET varchar(50));
 
 -- Reglages modifiables sans toucher au code. Une seule ligne.
 create table if not exists PARAMETRES (

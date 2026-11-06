@@ -36,6 +36,21 @@
     {% endfor %}
 
     <section>
+        <h2>Alertes de seuil</h2>
+        <p class="aide">Références à {{ seuil }} % du stock plein ou moins.</p>
+        {% for alerte in alertes %}
+        <div class="ligne">
+            <div class="infos">
+                <strong>{{ alerte['REF'] }} : {{ alerte['EN_STOCK'] }} en stock sur {{ alerte['STOCK_PLEIN'] }} ({{ alerte['POURCENT'] }} %)</strong>
+                <span>Déjà commandé : {{ alerte['EN_COMMANDE'] }}. Reste à commander : {{ alerte['RESTE'] }}.</span>
+            </div>
+        </div>
+        {% else %}
+        <p class="vide">Aucune référence au seuil.</p>
+        {% endfor %}
+    </section>
+
+    <section>
         <h2>Décider un arrêt</h2>
         <p class="aide">Pour n'importe quelle référence du catalogue. La décision affiche le bandeau sur l'accueil et prépare les messages clients.</p>
         <form action="{{ url_for('pilotage_arret') }}" method="POST">
@@ -46,6 +61,11 @@
             </select>
             <label for="date_arret">Date d'arrêt</label>
             <input id="date_arret" type="date" name="date_arret" required>
+            <label for="motif_arret">Motif</label>
+            <select id="motif_arret" name="motif" required>
+                <option value="">Choisir un motif</option>
+                {% for motif in motifs_arret %}<option value="{{ motif }}">{{ motif }}</option>{% endfor %}
+            </select>
             <button type="submit">Arrêter ce produit</button>
         </form>
     </section>
@@ -66,8 +86,8 @@
     </section>
 
     <section>
-        <h2>Stock plein et lot par référence</h2>
-        <p class="aide">À {{ seuil }} % du stock plein ou moins, une commande se crée toute seule avec le lot habituel. Sans réglage, pas de commande automatique.</p>
+        <h2>Stock plein par référence</h2>
+        <p class="aide">À {{ seuil }} % du stock plein ou moins, une commande se crée toute seule pour revenir au stock plein. Sans réglage, pas de commande automatique.</p>
         <form action="{{ url_for('pilotage_reglage') }}" method="POST">
             <label for="reglage_reference">Référence</label>
             <select id="reglage_reference" name="reference" required>
@@ -76,15 +96,13 @@
             </select>
             <label for="reglage_plein">Stock plein</label>
             <input id="reglage_plein" type="number" name="stock_plein" min="1" required>
-            <label for="reglage_lot">Lot habituel</label>
-            <input id="reglage_lot" type="number" name="lot" min="1" required>
             <button type="submit">Enregistrer</button>
         </form>
         {% for reglage in reglages %}
         <div class="ligne">
             <div class="infos">
                 <strong>{{ reglage['REF'] }}</strong>
-                <span>{{ reglage['EN_STOCK'] }} en stock sur {{ reglage['STOCK_PLEIN'] }}, lot habituel {{ reglage['QTE_COMMANDE'] }}</span>
+                <span>{{ reglage['EN_STOCK'] }} en stock sur {{ reglage['STOCK_PLEIN'] }}</span>
             </div>
         </div>
         {% endfor %}
@@ -97,7 +115,7 @@
         <div class="ligne">
             <div class="infos">
                 <strong>{{ article['REF'] }}</strong>
-                <span>Emplacement {{ article['ALLEE_ID'] }}-{{ article['ID'] }}, rangé le {{ article['Date']|date_fr }}</span>
+                <span>Emplacement {{ article['ALLEE_ID'] }}-{{ article['ID'] }}, rangé le {{ article['Date']|date_fr }}. Motif : {{ article['RAISON'] }}</span>
             </div>
             {% if article['DATE_ARRET'] %}
             <span>Arrêt prévu le {{ article['DATE_ARRET']|date_fr }}</span>
@@ -105,6 +123,10 @@
             <form action="{{ url_for('pilotage_arret') }}" method="POST">
                 <input type="hidden" name="reference" value="{{ article['REF'] }}">
                 <input type="date" name="date_arret" aria-label="Date d'arrêt de {{ article['REF'] }}" required>
+                <select name="motif" aria-label="Motif d'arrêt de {{ article['REF'] }}" required>
+                    <option value="">Motif</option>
+                    {% for motif in motifs_arret %}<option value="{{ motif }}">{{ motif }}</option>{% endfor %}
+                </select>
                 <button type="submit">Arrêter</button>
             </form>
             {% endif %}
@@ -138,18 +160,22 @@
 
     <section>
         <h2>Commandes en cours</h2>
-        <p class="aide">Envoie la commande au fournisseur par mail, puis marque-la comme reçue pour que le seuil puisse en créer une nouvelle.</p>
+        <p class="aide">Envoie la commande au fournisseur par mail, puis marque-la comme reçue. Elle se clôture toute seule quand ses articles sont rangés.</p>
         {% for commande in commandes_en_cours %}
         <div class="ligne">
             <div class="infos">
                 <strong>{{ commande['REF'] }} × {{ commande['QUANTITE'] }}</strong>
-                <span>{{ commande['FOURNISSEUR'] }}{% if commande['STATUT'] == 'ENVOYEE' %} · envoyée{% endif %}</span>
+                <span>{{ commande['FOURNISSEUR'] }}{% if commande['STATUT'] == 'ENVOYEE' %} · envoyée{% elif commande['STATUT'] == 'RECUE' %} · reçue, à ranger{% endif %}</span>
             </div>
             <div class="actions">
                 {% if commande['STATUT'] == 'VALIDEE' %}
                 <form action="{{ url_for('pilotage_envoyer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button type="submit">Envoyer</button></form>
                 {% endif %}
+                {% if commande['STATUT'] == 'RECUE' %}
+                <form action="{{ url_for('pilotage_terminer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button class="secondaire" type="submit">Clôturer</button></form>
+                {% else %}
                 <form action="{{ url_for('pilotage_cloturer', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button type="submit">Reçue</button></form>
+                {% endif %}
                 {% if commande['STATUT'] == 'VALIDEE' %}
                 <form action="{{ url_for('pilotage_annuler_en_cours', commande_id=commande['COMMANDE_ID']) }}" method="POST"><button class="secondaire" type="submit">Annuler</button></form>
                 {% endif %}
