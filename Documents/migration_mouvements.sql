@@ -34,20 +34,26 @@ create table if not exists MOUVEMENTS (
 
 create index if not exists IX_MOUVEMENT_ARTICLE on MOUVEMENTS (ARTICLE_ID);
 
--- Articles signales abimes, casses, hors service, avec un defaut de fabrication
--- ou une piece manquante. L'article reste en stock : le signalement ne change pas l'inventaire.
-create table if not exists ANOMALIES (
-     ANOMALIE_ID integer primary key,
-     ARTICLE_ID integer not null references ARTICLES (ARTICLE_ID),
+-- Produits a probleme : abime, casse, hors service, defaut de fabrication, piece manquante,
+-- erreur de produit recu ou erreur de commande. Le signalement ne change pas l'inventaire.
+-- ARTICLE_ID et COMMANDE_ID restent vides quand ils ne s'appliquent pas :
+-- un mauvais produit recu n'est par exemple jamais entre en stock.
+-- ANOMALIES, premiere version sans ces motifs, n'a jamais recu de donnees.
+drop table if exists ANOMALIES;
+create table if not exists SIGNALEMENTS (
+     SIGNALEMENT_ID integer primary key,
+     ARTICLE_ID integer references ARTICLES (ARTICLE_ID),
+     COMMANDE_ID integer references COMMANDES (COMMANDE_ID),
      REF varchar(50) not null,
      MOTIF varchar(20) not null
-          check (MOTIF in ('ABIME', 'CASSE', 'HORS_SERVICE', 'DEFAUT_FABRICATION', 'PIECE_MANQUANTE')),
+          check (MOTIF in ('ABIME', 'CASSE', 'HORS_SERVICE', 'DEFAUT_FABRICATION', 'PIECE_MANQUANTE',
+                           'ERREUR_PRODUIT', 'ERREUR_COMMANDE')),
      COMMENTAIRE varchar(500),
-     STATUT varchar(10) not null default 'OUVERTE' check (STATUT in ('OUVERTE', 'TRAITEE')),
+     STATUT varchar(10) not null default 'OUVERT' check (STATUT in ('OUVERT', 'TRAITE')),
      UTILISATEUR varchar(20),
      DATE_SIGNALEMENT text not null default (datetime('now')));
 
-create index if not exists IX_ANOMALIE_ARTICLE on ANOMALIES (ARTICLE_ID, STATUT);
+create index if not exists IX_SIGNALEMENT_REF on SIGNALEMENTS (REF, STATUT);
 
 -- Reprise du stock existant : un article et une entree pour chaque ligne d'inventaire.
 insert into ARTICLES (REF, ALLEE_ID, EMPLACEMENT_ID, DATE_ENTREE)
