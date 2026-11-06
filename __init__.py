@@ -311,7 +311,10 @@ def scan():
     if not re.fullmatch(r'[1-9][0-9]{6}', ref):
         flash(f"« {ref} » n'est pas une référence valide (7 chiffres).")
         return redirect(url_for('scan'))
-    if emplacement and not re.fullmatch(r'([A-Z]-)?[0-9]{1,4}', emplacement):
+    if not emplacement:
+        flash("Indique aussi l'emplacement.")
+        return redirect(url_for('scan'))
+    if not re.fullmatch(r'([A-Z]-)?[0-9]{1,4}', emplacement):
         flash(f"« {emplacement} » n'est pas un emplacement valide (exemple : A-100 ou 100).")
         return redirect(url_for('scan'))
 
@@ -323,11 +326,8 @@ def scan():
             if erreur:
                 flash(erreur)
                 return redirect(url_for('scan'))
-        allee_id, emplacement_id = emplacement.split('-') if emplacement else ('', '')
+        allee_id, emplacement_id = emplacement.split('-')
         if action == 'ENTREE':
-            if not emplacement:
-                flash("Indique l'emplacement où ranger l'article.")
-                return redirect(url_for('scan'))
             date_entree = date_iso.today().isoformat()
             try:
                 cursor.execute('INSERT INTO inventaire (REF, Date, ALLEE_ID, ID) VALUES (?, ?, ?, ?)',
