@@ -57,6 +57,12 @@
     </section>
 </main>
 
+<script>
+    // Affiche toute erreur sur la page : sur un téléphone, la console n'est pas accessible
+    window.addEventListener('error', function (evenement) {
+        document.getElementById('etat_camera').textContent = 'Erreur de la page : ' + evenement.message;
+    });
+</script>
 <script src="{{ url_for('static', filename='html5-qrcode.min.js') }}"></script>
 <script>
     var bouton = document.getElementById('bouton_camera');
@@ -88,9 +94,30 @@
         etat.textContent = (estEmplacement ? 'Emplacement lu : ' : 'Référence lue : ') + texte + '. ' + manque;
     }
 
+    function expliquerErreur(erreur) {
+        var texte = String(erreur);
+        if (/NotAllowed|Permission/i.test(texte)) { return "Caméra refusée : autorise-la pour ce site dans les réglages du navigateur."; }
+        if (/NotFound|DevicesNotFound/i.test(texte)) { return "Aucune caméra trouvée sur cet appareil."; }
+        if (/NotReadable|TrackStart/i.test(texte)) { return "Caméra déjà utilisée : ferme l'appareil photo et les autres applis, puis réessaie."; }
+        return 'Caméra indisponible : ' + texte;
+    }
+
+    function echecCamera(erreur) {
+        lecteur = null;
+        enCours = false;
+        bouton.textContent = 'Scanner avec la caméra';
+        zone.innerHTML = '';
+        zone.classList.remove('actif');
+        etat.textContent = expliquerErreur(erreur);
+    }
+
     function demarrerCamera() {
         if (typeof Html5Qrcode === 'undefined') {
-            etat.textContent = 'Lecteur indisponible : écris le code à la main.';
+            etat.textContent = 'Lecteur non chargé : recharge la page, ou écris le code à la main.';
+            return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            etat.textContent = "Ce navigateur ne donne pas accès à la caméra : ouvre la page directement dans Safari ou Chrome, en https.";
             return;
         }
         enCours = true;
@@ -98,16 +125,13 @@
         etat.textContent = 'Vise le code avec la caméra.';
         // La zone doit être visible avant le démarrage : le lecteur a besoin de sa largeur
         zone.classList.add('actif');
-        lecteur = new Html5Qrcode('lecteur');
-        lecteur.start({ facingMode: 'environment' }, { fps: 10, qrbox: function (largeur, hauteur) { var cote = Math.max(120, Math.floor(Math.min(largeur, hauteur) * 0.8)); return { width: cote, height: cote }; } }, codeLu, function () {})
-            .catch(function () {
-                lecteur = null;
-                enCours = false;
-                bouton.textContent = 'Scanner avec la caméra';
-                zone.innerHTML = '';
-                zone.classList.remove('actif');
-                etat.textContent = "Caméra indisponible ou refusée : écris le code à la main.";
-            });
+        try {
+            lecteur = new Html5Qrcode('lecteur');
+            lecteur.start({ facingMode: 'environment' }, { fps: 10, qrbox: function (largeur, hauteur) { var cote = Math.max(120, Math.floor(Math.min(largeur, hauteur) * 0.8)); return { width: cote, height: cote }; } }, codeLu, function () {})
+                .catch(echecCamera);
+        } catch (erreur) {
+            echecCamera(erreur);
+        }
     }
 
     bouton.addEventListener('click', function () {
