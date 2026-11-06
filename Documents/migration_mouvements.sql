@@ -59,7 +59,9 @@ create index if not exists IX_SIGNALEMENT_REF on SIGNALEMENTS (REF, STATUT);
 insert into ARTICLES (REF, ALLEE_ID, EMPLACEMENT_ID, DATE_ENTREE)
 select i.REF, i.ALLEE_ID, i.ID, i.Date
 from INVENTAIRE i
-where not exists (select 1 from ARTICLES a where a.REF = i.REF and a.STATUT = 'EN_STOCK');
+where not exists (select 1 from ARTICLES a
+                  where a.REF = i.REF and a.ALLEE_ID = i.ALLEE_ID and a.EMPLACEMENT_ID = i.ID
+                    and a.STATUT = 'EN_STOCK');
 
 insert into MOUVEMENTS (ARTICLE_ID, REF, TYPE, ALLEE_ID, EMPLACEMENT_ID, SOURCE, DATE_EVENEMENT)
 select a.ARTICLE_ID, a.REF, 'ENTREE', a.ALLEE_ID, a.EMPLACEMENT_ID, 'REPRISE', a.DATE_ENTREE

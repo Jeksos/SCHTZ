@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaler un produit</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: #8DA14B; font-family: Arial, sans-serif; color: #1a1a1a; margin: 0; padding: 16px; }
+        main { max-width: 900px; margin: 0 auto; }
+        h1 { color: #1a1a1a; text-align: center; margin: 8px 0 16px; }
+        h2 { margin: 0 0 4px; font-size: 20px; }
+        .retour { color: #1a1a1a; font-weight: bold; }
+        .avis { background: #FFEB3B; padding: 10px 14px; border-radius: 5px; margin: 12px 0; font-weight: bold; }
+        section { background: #228B22; color: white; border-radius: 8px; padding: 16px; margin: 16px 0; overflow-x: auto; }
+        .aide { margin: 0 0 12px; font-size: 14px; }
+        .vide { margin: 0; font-style: italic; }
+        form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #999; border-radius: 5px; font-size: 16px; font-family: inherit; }
+        .large { grid-column: 1 / -1; }
+        button { padding: 10px 14px; border: 2px solid #0F4D0F; border-radius: 5px; font-size: 15px; font-weight: bold; cursor: pointer; background: #228B22; color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; border-top: 1px solid #ffffff66; }
+        th { border-top: 0; white-space: nowrap; }
+    </style>
+</head>
+<body>
+<main>
+    <a class="retour" href="/menu_accueil">Retour à l'accueil</a>
+    <h1>Signaler un produit</h1>
+
+    {% for message in get_flashed_messages() %}
+    <div class="avis" role="status">{{ message }}</div>
+    {% endfor %}
+
+    <section>
+        <h2>Nouveau signalement</h2>
+        <p class="aide">Le produit sort du stock. Pour une erreur de produit reçu ou de commande, laisse l'emplacement vide si le produit n'a jamais été rangé : le stock ne bouge pas.</p>
+        <form action="{{ url_for('signalements') }}" method="POST">
+            <div>
+                <label for="reference">Référence</label>
+                <input id="reference" name="reference" required>
+            </div>
+            <div>
+                <label for="motif">Motif</label>
+                <select id="motif" name="motif" required>
+                    <option value="">Choisir un motif</option>
+                    {% for code, libelle in motifs.items() %}
+                    <option value="{{ code }}">{{ libelle }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="allee">Allée (si plusieurs emplacements)</label>
+                <input id="allee" name="allee" maxlength="1">
+            </div>
+            <div>
+                <label for="emplacement">Emplacement (si plusieurs emplacements)</label>
+                <input id="emplacement" name="emplacement" inputmode="numeric">
+            </div>
+            <div class="large">
+                <label for="commentaire">Commentaire (facultatif)</label>
+                <textarea id="commentaire" name="commentaire" maxlength="500" rows="2"></textarea>
+            </div>
+            <div class="large">
+                <button type="submit">Signaler</button>
+            </div>
+        </form>
+    </section>
+
+    <section>
+        <h2>Derniers signalements</h2>
+        {% if signalements %}
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Référence</th><th>Motif</th><th>Emplacement</th><th>Commentaire</th><th>Utilisateur</th></tr>
+            </thead>
+            <tbody>
+                {% for signalement in signalements %}
+                <tr>
+                    <td>{{ signalement['DATE_SIGNALEMENT']|date_heure_fr }}</td>
+                    <td>{{ signalement['REF'] }}</td>
+                    <td>{{ motifs.get(signalement['MOTIF'], signalement['MOTIF']) }}</td>
+                    <td>{% if signalement['ALLEE_ID'] %}{{ signalement['ALLEE_ID'] }}-{{ signalement['EMPLACEMENT_ID'] }}{% else %}Hors stock{% endif %}</td>
+                    <td>{{ signalement['COMMENTAIRE'] or '' }}</td>
+                    <td>{{ signalement['UTILISATEUR'] or '' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="vide">Aucun signalement.</p>
+        {% endif %}
+    </section>
+</main>
+</body>
+</html>

@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 import hmac
 from datetime import date as date_iso, datetime, timezone
 import os
+import shutil
 import sqlite3
 from functools import wraps
 
@@ -23,11 +24,51 @@ app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
 # Empêche un autre site d'envoyer les formulaires à la place d'un utilisateur connecté
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-# Crée les tables du journal au démarrage. Une erreur ici ne doit pas empêcher le site de démarrer.
+# Une ancienne base n'accepte qu'une ligne par référence dans INVENTAIRE.
+# On reconstruit la table une seule fois, après une copie de sauvegarde de la base.
+def reference_est_unique(conn):
+    return any(colonne[1] == 'REF' and colonne[5] for colonne in conn.execute('PRAGMA table_info(INVENTAIRE)'))
+
+def lever_limite_par_reference(conn):
+    if not reference_est_unique(conn):
+        return
+    if not os.path.exists('schutz.db.avant_multi_articles'):
+        shutil.copy2('schutz.db', 'schutz.db.avant_multi_articles')
+    conn.isolation_level = None
+    # Sans ce réglage, renommer la table échoue car les vues la cherchent pendant le renommage
+    conn.execute('PRAGMA legacy_alter_table = ON')
+    conn.execute('BEGIN IMMEDIATE')
+    try:
+        # Un autre processus a pu faire le travail pendant l'attente du verrou
+        if reference_est_unique(conn):
+            declencheurs = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'INVENTAIRE'").fetchall()
+            conn.execute('''CREATE TABLE INVENTAIRE_NOUVELLE (
+                REF varchar(50) not null,
+                Date date not null,
+                ALLEE_ID char(1) not null,
+                ID numeric(1) not null,
+                constraint FKALLEE unique (ALLEE_ID, ID),
+                foreign key (ALLEE_ID, ID) references EMPLACEMENTS)''')
+            conn.execute('INSERT INTO INVENTAIRE_NOUVELLE (REF, Date, ALLEE_ID, ID) SELECT REF, Date, ALLEE_ID, ID FROM INVENTAIRE')
+            conn.execute('DROP TABLE INVENTAIRE')
+            conn.execute('ALTER TABLE INVENTAIRE_NOUVELLE RENAME TO INVENTAIRE')
+            conn.execute('CREATE INDEX IX_INVENTAIRE_REF ON INVENTAIRE (REF)')
+            for (sql,) in declencheurs:
+                conn.execute(sql)
+        conn.execute('COMMIT')
+    except sqlite3.Error:
+        conn.execute('ROLLBACK')
+        raise
+    finally:
+        conn.execute('PRAGMA legacy_alter_table = OFF')
+        conn.isolation_level = ''
+
+# Met la base à jour au démarrage. Une erreur ici ne doit pas empêcher le site de démarrer.
 def appliquer_migration_mouvements():
     chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Documents', 'migration_mouvements.sql')
     conn = sqlite3.connect('schutz.db')
     try:
+        lever_limite_par_reference(conn)
         with open(chemin, encoding='utf-8') as fichier:
             conn.executescript(fichier.read())
     except (OSError, sqlite3.Error):
@@ -158,7 +199,8 @@ def enregistrer_entree(cursor, ref, allee_id, emplacement_id, date_entree, sourc
     ecrire_mouvement(cursor, cursor.lastrowid, ref, 'ENTREE', allee_id, emplacement_id, source)
 
 def enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, source):
-    ligne = cursor.execute("SELECT ARTICLE_ID FROM ARTICLES WHERE REF = ? AND STATUT = 'EN_STOCK'", (ref,)).fetchone()
+    ligne = cursor.execute("SELECT ARTICLE_ID FROM ARTICLES WHERE REF = ? AND ALLEE_ID = ? AND EMPLACEMENT_ID = ? AND STATUT = 'EN_STOCK'",
+                           (ref, allee_id, emplacement_id)).fetchone()
     if ligne:
         article_id = ligne[0]
     else:
@@ -168,6 +210,7 @@ def enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, sourc
         article_id = cursor.lastrowid
     cursor.execute("UPDATE ARTICLES SET STATUT = 'SORTI', DATE_SORTIE = datetime('now') WHERE ARTICLE_ID = ?", (article_id,))
     ecrire_mouvement(cursor, article_id, ref, 'SORTIE', allee_id, emplacement_id, source)
+    return article_id
 
 
 @app.route('/formulaire_ranger')
@@ -201,7 +244,7 @@ def RangerComposant():
         # En cas d'erreur, afficher un message d'erreur
         
         error_message = f"Impossible d'ajouter cette référence à cet emplacement."
-        error_message += f"\r\nVérifier si l'emplacement est libre ou si la référence n'est pas déjà présente ailleurs."
+        error_message += f"\r\nVérifier si l'emplacement est libre."
         return render_template('form_ranger.html', error=True, error_message=error_message)
 
 @app.route('/formulaire_vider')
@@ -227,6 +270,88 @@ def ViderEmplacement():
     conn.close()
     
     return render_template('form_vider.html', message = "L'emplacement %s-%s est libéré" % (allee_id, id))
+
+# ----- Produits à problème -----
+# Un produit signalé sort du stock : il n'est plus disponible et l'agent peut en recommander.
+
+MOTIFS_SIGNALEMENT = {
+    'ABIME': 'Abîmé',
+    'CASSE': 'Cassé',
+    'HORS_SERVICE': 'Hors service (ne fonctionne pas)',
+    'DEFAUT_FABRICATION': 'Défaut de fabrication',
+    'PIECE_MANQUANTE': 'Pièce manquante',
+    'ERREUR_PRODUIT': 'Erreur de produit reçu',
+    'ERREUR_COMMANDE': 'Erreur de commande',
+}
+# Ces erreurs peuvent concerner un produit jamais rangé : sans emplacement, le stock ne bouge pas.
+MOTIFS_ERREUR = ('ERREUR_PRODUIT', 'ERREUR_COMMANDE')
+
+def afficher_signalements():
+    conn = connexion_agent()
+    signalements = conn.execute(
+        'SELECT s.REF, s.MOTIF, s.COMMENTAIRE, s.UTILISATEUR, s.DATE_SIGNALEMENT, a.ALLEE_ID, a.EMPLACEMENT_ID '
+        'FROM SIGNALEMENTS s LEFT JOIN ARTICLES a ON a.ARTICLE_ID = s.ARTICLE_ID '
+        'ORDER BY s.SIGNALEMENT_ID DESC LIMIT 50').fetchall()
+    conn.close()
+    return render_template('page_signalements.html', signalements=signalements, motifs=MOTIFS_SIGNALEMENT)
+
+# Retrouve la ligne de stock à retirer. Renvoie (ligne, erreur).
+def trouver_ligne_a_retirer(cursor, ref, motif, allee_id, emplacement_id):
+    if allee_id or emplacement_id:
+        if not (allee_id and emplacement_id):
+            return None, "Indique l'allée et l'emplacement, ou aucun des deux."
+        ligne = cursor.execute('SELECT Date, ALLEE_ID, ID FROM inventaire WHERE REF = ? AND ALLEE_ID = ? AND ID = ?',
+                               (ref, allee_id, emplacement_id)).fetchone()
+        if ligne is None:
+            return None, f"La référence {ref} n'est pas à l'emplacement {allee_id}-{emplacement_id}."
+        return ligne, None
+    if motif in MOTIFS_ERREUR:
+        return None, None
+    lignes = cursor.execute('SELECT Date, ALLEE_ID, ID FROM inventaire WHERE REF = ?', (ref,)).fetchall()
+    if not lignes:
+        return None, f"La référence {ref} n'est pas en stock."
+    if len(lignes) > 1:
+        return None, f"La référence {ref} est à plusieurs emplacements : indique lequel."
+    return lignes[0], None
+
+@app.route('/signalements', methods=['GET', 'POST'])
+@connexion_requise
+def signalements():
+    if request.method == 'GET':
+        return afficher_signalements()
+
+    ref = request.form.get('reference', '').strip()
+    motif = request.form.get('motif', '')
+    allee_id = request.form.get('allee', '').strip().upper()
+    emplacement_id = request.form.get('emplacement', '').strip()
+    commentaire = request.form.get('commentaire', '').strip()[:500] or None
+    if not ref or motif not in MOTIFS_SIGNALEMENT:
+        flash('Indique une référence et un motif.')
+        return redirect(url_for('signalements'))
+
+    conn = sqlite3.connect('schutz.db')
+    try:
+        cursor = conn.cursor()
+        ligne, erreur = trouver_ligne_a_retirer(cursor, ref, motif, allee_id, emplacement_id)
+        if erreur:
+            flash(erreur)
+            return redirect(url_for('signalements'))
+        article_id = None
+        if ligne:
+            date_entree, allee_id, emplacement_id = ligne
+            cursor.execute('DELETE FROM inventaire WHERE ALLEE_ID = ? AND ID = ?', (allee_id, emplacement_id))
+            article_id = enregistrer_sortie(cursor, ref, allee_id, emplacement_id, date_entree, 'MANUEL')
+        cursor.execute('INSERT INTO SIGNALEMENTS (ARTICLE_ID, REF, MOTIF, COMMENTAIRE, UTILISATEUR) VALUES (?, ?, ?, ?, ?)',
+                       (article_id, ref, motif, commentaire, utilisateur_connecte()))
+        conn.commit()
+    finally:
+        conn.close()
+    if ligne:
+        flash(f"Référence {ref} retirée du stock (emplacement {allee_id}-{emplacement_id}).")
+    else:
+        flash(f"Signalement enregistré pour la référence {ref}. Le stock ne change pas.")
+    return redirect(url_for('signalements'))
+
 
 @app.route('/recherche', methods=['GET', 'POST'])
 @connexion_requise

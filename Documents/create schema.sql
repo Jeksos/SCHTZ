@@ -36,7 +36,6 @@ create table INVENTAIRE (
      Date date not null,
      ALLEE_ID char(1) not null,
      ID numeric(1) not null,
-     constraint ID_INVENTAIRE primary key (REF),
      constraint FKALLEE unique (ALLEE_ID, ID),
      foreign key (ALLEE_ID, ID) references EMPLACEMENTS);
 
@@ -47,7 +46,7 @@ create table INVENTAIRE (
 create unique index ID_EMPLACEMENTS
      on EMPLACEMENTS (ALLEE_ID, ID);
 
-create unique index ID_INVENTAIRE
+create index IX_INVENTAIRE_REF
      on INVENTAIRE (REF);
 
 create unique index FKALLEE
