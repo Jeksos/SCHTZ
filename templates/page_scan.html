@@ -12,7 +12,7 @@
         .retour { color: #1a1a1a; font-weight: bold; }
         .avis { background: #FFEB3B; padding: 10px 14px; border-radius: 5px; margin: 12px 0; font-weight: bold; }
         section { background: #228B22; color: white; border-radius: 8px; padding: 16px; margin: 16px 0; }
-        .aide { margin: 0 0 12px; font-size: 14px; min-height: 1em; }
+        .aide { margin: 0 0 12px; font-size: 16px; font-weight: bold; min-height: 1em; }
         .choix { display: flex; gap: 16px; margin-bottom: 12px; font-weight: bold; }
         .choix label { display: flex; align-items: center; gap: 8px; }
         .champ { margin-bottom: 12px; }
@@ -20,6 +20,9 @@
         input[type="text"] { width: 100%; padding: 12px; border: 1px solid #999; border-radius: 5px; font-size: 18px; }
         input[type="radio"] { width: 20px; height: 20px; }
         button { width: 100%; padding: 14px; border: 2px solid #0F4D0F; border-radius: 5px; font-size: 17px; font-weight: bold; cursor: pointer; background: #228B22; color: white; margin-bottom: 12px; }
+        .bouton_photo { display: block; text-align: center; padding: 14px; border: 2px solid #0F4D0F; border-radius: 5px; font-size: 17px; font-weight: bold; cursor: pointer; background: #228B22; color: white; margin-bottom: 12px; }
+        .invisible { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        #lecteur_photo { display: none; }
         #lecteur { display: none; background: #000; border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
         #lecteur.actif { display: block; }
     </style>
@@ -36,6 +39,9 @@
     <section>
         <div id="lecteur"></div>
         <button type="button" id="bouton_camera">Scanner avec la caméra</button>
+        <label class="bouton_photo" for="photo_code">Prendre une photo du code</label>
+        <input class="invisible" type="file" id="photo_code" accept="image/*" capture="environment">
+        <div id="lecteur_photo"></div>
         <p class="aide" id="etat_camera" role="status">Scanne l'article puis l'emplacement, ou écris-les à la main.</p>
 
         <form action="{{ url_for('scan') }}" method="POST" autocomplete="off">
@@ -73,6 +79,7 @@
     var zone = document.getElementById('lecteur');
     var lecteur = null;
     var enCours = false;
+    var minuteur = null;
 
     function arreterCamera() {
         enCours = false;
@@ -80,7 +87,12 @@
         if (!lecteur) { return Promise.resolve(); }
         var actif = lecteur;
         lecteur = null;
-        return actif.stop().catch(function () {}).then(function () { actif.clear(); zone.classList.remove('actif'); });
+        zone.classList.remove('actif');
+        try {
+            return actif.stop().catch(function () {}).then(function () { actif.clear(); });
+        } catch (erreur) {
+            return Promise.resolve();
+        }
     }
 
     // Un code comme A-100 ou 100 est un emplacement, tout le reste une référence
@@ -99,10 +111,12 @@
         if (/NotAllowed|Permission/i.test(texte)) { return "Caméra refusée : autorise-la pour ce site dans les réglages du navigateur."; }
         if (/NotFound|DevicesNotFound/i.test(texte)) { return "Aucune caméra trouvée sur cet appareil."; }
         if (/NotReadable|TrackStart/i.test(texte)) { return "Caméra déjà utilisée : ferme l'appareil photo et les autres applis, puis réessaie."; }
+        if (/ne répond pas/.test(texte)) { return texte; }
         return 'Caméra indisponible : ' + texte;
     }
 
     function echecCamera(erreur) {
+        clearTimeout(minuteur);
         lecteur = null;
         enCours = false;
         bouton.textContent = 'Scanner avec la caméra';
@@ -126,8 +140,18 @@
         // La zone doit être visible avant le démarrage : le lecteur a besoin de sa largeur
         zone.classList.add('actif');
         try {
-            lecteur = new Html5Qrcode('lecteur');
-            lecteur.start({ facingMode: 'environment' }, { fps: 10, qrbox: function (largeur, hauteur) { var cote = Math.max(120, Math.floor(Math.min(largeur, hauteur) * 0.8)); return { width: cote, height: cote }; } }, codeLu, function () {})
+            var ceLecteur = new Html5Qrcode('lecteur');
+            lecteur = ceLecteur;
+            // Certains téléphones ne répondent jamais : on propose la photo plutôt que d'attendre sans fin
+            minuteur = setTimeout(function () {
+                echecCamera("La caméra ne répond pas. Appuie sur « Prendre une photo du code ».");
+            }, 8000);
+            ceLecteur.start({ facingMode: 'environment' }, { fps: 10, qrbox: function (largeur, hauteur) { var cote = Math.max(120, Math.floor(Math.min(largeur, hauteur) * 0.8)); return { width: cote, height: cote }; } }, codeLu, function () {})
+                .then(function () {
+                    clearTimeout(minuteur);
+                    // La caméra répond après l'abandon : on la coupe
+                    if (lecteur !== ceLecteur) { ceLecteur.stop().catch(function () {}); }
+                })
                 .catch(echecCamera);
         } catch (erreur) {
             echecCamera(erreur);
@@ -136,6 +160,24 @@
 
     bouton.addEventListener('click', function () {
         if (enCours) { arreterCamera(); etat.textContent = 'Caméra arrêtée.'; } else { demarrerCamera(); }
+    });
+
+    // Solution de secours : l'appareil photo du téléphone, sans accès direct à la caméra
+    document.getElementById('photo_code').addEventListener('change', function (evenement) {
+        var fichier = evenement.target.files[0];
+        evenement.target.value = '';
+        if (!fichier) { return; }
+        if (typeof Html5Qrcode === 'undefined') {
+            etat.textContent = 'Lecteur non chargé : recharge la page, ou écris le code à la main.';
+            return;
+        }
+        etat.textContent = 'Lecture de la photo…';
+        arreterCamera();
+        new Html5Qrcode('lecteur_photo').scanFile(fichier, false)
+            .then(codeLu)
+            .catch(function () {
+                etat.textContent = 'Code non lu sur la photo : reprends-la de plus près, bien nette.';
+            });
     });
 
     // Un code corrigé à la main n'est plus un code scanné
